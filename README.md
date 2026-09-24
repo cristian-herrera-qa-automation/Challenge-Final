@@ -422,6 +422,11 @@ verificados contra el texto de la ley.
   4.92 y la revisión manual 8 de 12. Tampoco detectó el artículo mal citado en
   el caso de los tickets. Por eso la revisión del HITL la hace una persona.
 
+> ⚠️ **A partir de estos resultados se ajustó el prompt** (regla 2: no agregar
+> explicaciones ni consecuencias que no estén escritas en los artículos del
+> contexto). Los números de arriba corresponden a la versión anterior; falta
+> volver a correr la evaluación para medir el efecto.
+
 ---
 
 ## 🛡️ IA Responsable
