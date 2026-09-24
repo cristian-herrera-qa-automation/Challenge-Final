@@ -428,10 +428,11 @@ económicas o legales con ella.
 | Consulta                               | Motivo                        | Qué encontró el revisor                                                                | Decisión     |
 | -------------------------------------- | ----------------------------- | -------------------------------------------------------------------------------------- | ------------ |
 | "qué dice la ley del trabajo nocturno" | `cita_articulo_derogado` (173) | La respuesta se apoya en los arts. 190 y 200, vigentes. El 173 no se usó               | ✅ Aprobar   |
-| "me pueden pagar con tickets de comida" | `confianza_baja` (0.48)       | Responde "no, según el art. 131", pero el 131 trata retenciones: no responde eso       | ❌ Rechazar  |
+| "me pueden pagar con tickets de comida" | `confianza_baja` (0.48)       | Responde "no, según el art. 131", pero el 131 trata descuentos. Lo que dice que el salario se paga en dinero es el art. 105, y no considera los beneficios sociales del 103 bis, que ni se recuperó | ❌ Rechazar  |
 
 El segundo caso muestra por qué hace falta: la respuesta suena segura, cita
-un artículo real, y está mal fundamentada.
+un artículo real, y está mal fundamentada. En la evaluación, el LLM-as-a-Judge
+le puso 5/5/5: tampoco detectó que el artículo citado era el equivocado.
 
 ### Cómo funciona
 

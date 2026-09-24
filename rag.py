@@ -337,27 +337,34 @@ def generar_respuesta(pregunta, contexto):
 
 CONSULTA: {pregunta}"""
 
-    # Si el modelo devuelve una salida degenerada, se reintenta una vez.
-    # Si falla de nuevo, se levanta un error: es preferible un 503 a
-    # entregar (y guardar en el caché) una respuesta basura.
-    for intento in (1, 2):
+    # Si el modelo devuelve una salida degenerada, se reintenta. El primer
+    # intento va con temperature=0; los reintentos con una temperatura
+    # baja, porque en la evaluación la misma pregunta degeneró dos veces
+    # seguidas con 0: la idea es sacar al modelo del bucle. El determinismo
+    # no se pierde: la respuesta que se entrega queda fija en el caché.
+    # Si falla las tres veces, se levanta un error: es preferible un 503
+    # a entregar (y guardar en el caché) una respuesta basura.
+    for intento, temperatura in enumerate(TEMPERATURAS_POR_INTENTO, start=1):
         respuesta = co.chat(
             model=MODELO_CHAT,
             messages=[
                 {"role": "system", "content": INSTRUCCIONES},
                 {"role": "user", "content": mensaje_usuario},
             ],
-            temperature=TEMPERATURA,
+            temperature=temperatura,
             max_tokens=MAX_TOKENS,
         )
         texto = respuesta.message.content[0].text.strip()
 
         if not es_degenerada(texto):
             return texto
-        logger.warning("Salida degenerada del modelo (intento %d, %d caracteres)",
-                       intento, len(texto))
+        logger.warning("Salida degenerada del modelo (intento %d, temp=%.1f, %d caracteres, empieza %r)",
+                       intento, temperatura, len(texto), texto[:30])
 
-    raise RuntimeError("El modelo devolvió una salida degenerada dos veces")
+    raise RuntimeError("El modelo devolvió una salida degenerada en todos los intentos")
+
+
+TEMPERATURAS_POR_INTENTO = (TEMPERATURA, 0.3, 0.3)
 
 
 # Caso real observado: con temperature=0, command-a devolvió una vez

@@ -1,0 +1,137 @@
+[
+  {
+    "id": 1,
+    "categoria": "respondible",
+    "pregunta": "¿Cuántos días de vacaciones me corresponden con 8 años de antigüedad?",
+    "articulos_esperados": ["150"],
+    "datos_clave": [["21 dias", "veintiun"]],
+    "comportamiento_esperado": "responder",
+    "nota": "Caso base. Hay que elegir el tramo correcto (más de 5 y hasta 10 años)."
+  },
+  {
+    "id": 2,
+    "categoria": "respondible",
+    "pregunta": "¿Cuánto dura el período de prueba?",
+    "articulos_esperados": ["92 bis"],
+    "datos_clave": [["6 meses", "seis meses", "seis (6) meses"]],
+    "comportamiento_esperado": "responder",
+    "nota": "El art. 50 ('Prueba del contrato') comparte vocabulario y puede confundir al embedding."
+  },
+  {
+    "id": 3,
+    "categoria": "respondible",
+    "pregunta": "¿Cuánto se paga la hora extra?",
+    "articulos_esperados": ["201"],
+    "datos_clave": [["50%", "cincuenta por ciento"], ["100%", "ciento por ciento"]],
+    "comportamiento_esperado": "responder",
+    "nota": "La ley dice 'horas suplementarias', no 'hora extra'."
+  },
+  {
+    "id": 4,
+    "categoria": "respondible",
+    "pregunta": "¿Cuántos días de licencia me dan por casamiento?",
+    "articulos_esperados": ["158"],
+    "datos_clave": [["10 dias", "diez dias", "diez (10) dias"]],
+    "comportamiento_esperado": "responder",
+    "nota": "La ley dice 'matrimonio', no 'casamiento'."
+  },
+  {
+    "id": 5,
+    "categoria": "respondible",
+    "pregunta": "¿Cuándo se paga el aguinaldo?",
+    "articulos_esperados": ["122"],
+    "datos_clave": [["30 de junio"], ["18 de diciembre"]],
+    "comportamiento_esperado": "responder",
+    "nota": "La ley nunca dice 'aguinaldo': lo llama 'sueldo anual complementario'."
+  },
+  {
+    "id": 6,
+    "categoria": "especifica",
+    "pregunta": "Si tengo 3 años de antigüedad, ¿con cuánta anticipación me tiene que avisar el empleador antes de despedirme?",
+    "articulos_esperados": ["231"],
+    "datos_clave": [["un mes", "1 mes", "un (1) mes"]],
+    "comportamiento_esperado": "responder",
+    "nota": "Inciso b) reformado por la Ley 27.802. Hay que elegir el plazo del empleador, no el del trabajador (15 días)."
+  },
+  {
+    "id": 7,
+    "categoria": "especifica",
+    "pregunta": "¿Cuántos días de licencia corresponden por el fallecimiento de un hermano?",
+    "articulos_esperados": ["158"],
+    "datos_clave": [["un dia", "1 dia", "un (1) dia"]],
+    "comportamiento_esperado": "responder",
+    "nota": "El mismo artículo da 3 días para cónyuge, hijos o padres: tiene que distinguir el inciso d)."
+  },
+  {
+    "id": 8,
+    "categoria": "especifica",
+    "pregunta": "¿Cuántas horas puede durar como máximo una jornada íntegramente nocturna?",
+    "articulos_esperados": ["200"],
+    "datos_clave": [["7 horas", "siete horas", "siete (7) horas"]],
+    "comportamiento_esperado": "responder",
+    "nota": "El art. 190 también habla de trabajo nocturno, pero para menores."
+  },
+  {
+    "id": 9,
+    "categoria": "especifica",
+    "pregunta": "¿A partir de qué edad se puede trabajar?",
+    "articulos_esperados": ["189"],
+    "datos_clave": [["16 anos", "dieciseis"]],
+    "comportamiento_esperado": "responder",
+    "nota": "Hay una excepción (empresa de la familia, desde 14 años)."
+  },
+  {
+    "id": 10,
+    "categoria": "especifica",
+    "pregunta": "¿Durante cuánto tiempo se presume que un despido es por causa del embarazo?",
+    "articulos_esperados": ["178"],
+    "datos_clave": [["7 y medio", "siete y medio", "7 y 1/2", "7,5", "siete meses y medio", "7 meses y medio"]],
+    "comportamiento_esperado": "responder",
+    "nota": "Plazo antes o después del parto."
+  },
+  {
+    "id": 11,
+    "categoria": "sin_respuesta",
+    "pregunta": "¿Cuál es el monto actual del salario mínimo vital y móvil?",
+    "articulos_esperados": [],
+    "datos_clave": [],
+    "comportamiento_esperado": "no_responder",
+    "nota": "El art. 116 define el concepto pero no el monto, que lo fija el Consejo del Salario. Trampa: el tema es pertinente y el score va a ser alto."
+  },
+  {
+    "id": 12,
+    "categoria": "sin_respuesta",
+    "pregunta": "¿Cuántos días de licencia me corresponden por mudanza?",
+    "articulos_esperados": [],
+    "datos_clave": [],
+    "comportamiento_esperado": "no_responder",
+    "nota": "La LCT no la contempla (existe en algunos convenios colectivos). Trampa: el art. 158 lista otras licencias."
+  },
+  {
+    "id": 13,
+    "categoria": "fuera_de_tema",
+    "pregunta": "¿Cuál es la capital de Francia?",
+    "articulos_esperados": [],
+    "datos_clave": [],
+    "comportamiento_esperado": "fuera_de_tema",
+    "nota": "Tiene que cortar antes de llamar al modelo generativo."
+  },
+  {
+    "id": 14,
+    "categoria": "hitl",
+    "pregunta": "¿Qué dice la ley del trabajo nocturno?",
+    "articulos_esperados": ["200", "190"],
+    "datos_clave": [["21", "veintiuna"]],
+    "comportamiento_esperado": "revision",
+    "nota": "Recupera el art. 173 (derogado): tiene que quedar en revisión humana."
+  },
+  {
+    "id": 15,
+    "categoria": "hitl",
+    "pregunta": "¿Me pueden pagar con tickets de comida?",
+    "articulos_esperados": [],
+    "datos_clave": [],
+    "comportamiento_esperado": "revision",
+    "nota": "Evidencia débil (rerank < 0.50): tiene que quedar en revisión humana."
+  }
+]
