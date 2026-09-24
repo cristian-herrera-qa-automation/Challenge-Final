@@ -299,8 +299,12 @@ confirmó que el control humano tiene que ser una persona y no otro modelo.
 
 Con ese hallazgo ajusté el prompt: agregué una regla para que no sume
 explicaciones ni consecuencias que no estén escritas en los artículos,
-aunque sean ciertas. Todavía me falta volver a correr la evaluación para
-ver si mejoró.
+aunque sean ciertas. Volví a correr la evaluación y esta vez ninguna de las
+12 respuestas agregó nada que no estuviera en el texto. Pero no fue gratis:
+el modelo se volvió más literal, y en la pregunta de las horas extra copió
+el artículo casi palabra por palabra, hasta con un error de tipeo que tiene
+la ley. Aprendí que ajustar un prompt es un equilibrio: lo que gané en
+fidelidad lo perdí un poco en claridad.
 
 ---
 

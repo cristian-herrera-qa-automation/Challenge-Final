@@ -436,8 +436,8 @@ verificados contra el texto de la ley.
 | --------------------------------------------------------- | -------------------- |
 | Comportamiento esperado (responder / negarse / HITL)      | **15 de 15**         |
 | Dato clave y artículo citado (chequeo automático)         | 11 de 11             |
-| LLM-as-a-Judge: correcta / relevante / fundamentada (1-5) | 4.83 / 4.75 / 4.92   |
-| Revisión manual: sin frases fuera del contexto            | **8 de 12**          |
+| LLM-as-a-Judge: correcta / relevante / fundamentada (1-5) | 4.92 / 4.75 / 5.00   |
+| Revisión manual: sin frases fuera del contexto            | **12 de 12**         |
 
 **Lo que se aprendió:**
 
@@ -446,16 +446,16 @@ verificados contra el texto de la ley.
 - **Negarse bien depende del prompt:** en salario mínimo y licencia por
   mudanza los scores pasan los dos filtros; lo que evita inventar es la regla
   del prompt.
-- **El modelo agrega frases que no están en el contexto** (3 de 10 respuestas),
-  correctas en lo principal pero con datos sacados de su propio conocimiento.
-- **El juez no lo detecta:** con el mismo modelo como juez, "fundamentada" dio
-  4.92 y la revisión manual 8 de 12. Tampoco detectó el artículo mal citado en
-  el caso de los tickets. Por eso la revisión del HITL la hace una persona.
-
-> ⚠️ **A partir de estos resultados se ajustó el prompt** (regla 2: no agregar
-> explicaciones ni consecuencias que no estén escritas en los artículos del
-> contexto). Los números de arriba corresponden a la versión anterior; falta
-> volver a correr la evaluación para medir el efecto.
+- **El modelo agregaba frases que no estaban en el contexto:** en una primera
+  corrida, la revisión manual encontró 3 respuestas con datos sacados de su
+  propio conocimiento. Se agregó la regla 2 del prompt (no agregar
+  explicaciones ni consecuencias que no estén escritas en los artículos) y
+  en la corrida final no pasó en ninguna.
+- **El juez no lo había detectado:** con el mismo modelo como juez, les puso
+  "fundamentada: 5" a esas respuestas. Por eso la revisión del HITL la hace
+  una persona.
+- **Un prompt más estricto tiene un costo:** las respuestas son más literales;
+  en la de hora extra el modelo copió el artículo casi textual.
 
 ---
 
@@ -510,11 +510,12 @@ económicas o legales con ella.
 | Consulta                               | Motivo                        | Qué encontró el revisor                                                                | Decisión     |
 | -------------------------------------- | ----------------------------- | -------------------------------------------------------------------------------------- | ------------ |
 | "qué dice la ley del trabajo nocturno" | `cita_articulo_derogado` (173) | La respuesta se apoya en los arts. 190 y 200, vigentes. El 173 no se usó               | ✅ Aprobar   |
-| "me pueden pagar con tickets de comida" | `confianza_baja` (0.49)       | Responde "no, según el art. 131", pero el 131 trata descuentos. Lo que dice que el salario se paga en dinero es el art. 105, y no considera los beneficios sociales del 103 bis, que ni se recuperó | ❌ Rechazar  |
+| "me pueden pagar con tickets de comida" | `confianza_baja` (0.49)       | Describe lo que dice el art. 131 sobre descuentos al sueldo, pero no responde la pregunta. Lo que dice que el salario se paga en dinero es el art. 105, y los beneficios sociales del 103 bis ni se recuperaron | ❌ Rechazar  |
 
-El segundo caso muestra por qué hace falta: la respuesta suena segura, cita
-un artículo real, y está mal fundamentada. En la evaluación, el LLM-as-a-Judge
-le puso 5/5/5: tampoco detectó que el artículo citado era el equivocado.
+El segundo caso muestra por qué hace falta: la respuesta cita un artículo
+real y describe bien lo que dice, pero ese artículo no contesta lo que se
+preguntó. Con una versión anterior del prompt era peor: respondía "no, según
+el art. 131" con total seguridad, y el LLM-as-a-Judge le había puesto 5/5/5.
 
 ### Cómo funciona
 

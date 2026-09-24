@@ -1,5 +1,5 @@
 {
-  "fecha": "2026-09-24T12:01:49",
+  "fecha": "2026-09-24T12:41:06",
   "configuracion": {
     "modelo_embeddings": "embed-multilingual-v3.0",
     "modelo_chat": "command-a-03-2025",
@@ -30,9 +30,9 @@
     "comportamiento_correcto": "15/15",
     "juez": {
       "respuestas_juzgadas": 12,
-      "correcta": 4.833,
+      "correcta": 4.917,
       "relevante": 4.75,
-      "fundamentada": 4.917
+      "fundamentada": 5.0
     },
     "datos_clave_presentes": 1.0,
     "cita_articulo_esperado": 1.0
@@ -76,7 +76,7 @@
           "rr": 1.0
         }
       },
-      "respuesta": "Según el artículo 150, con 8 años de antigüedad te corresponden 21 días corridos de vacaciones.\n\nEl artículo establece que para antigüedad mayor a 5 años pero menor o igual a 10 años, el período de descanso anual es de 21 días corridos.",
+      "respuesta": "Según el artículo 150, con 8 años de antigüedad te corresponden 21 días corridos de vacaciones.\n\nEl artículo 150 establece los plazos de vacaciones según la antigüedad en el empleo. En tu caso, al tener más de 5 años pero menos de 10, te corresponde el inciso b) de 21 días corridos.",
       "motivos_revision": [],
       "comportamiento": "responder",
       "datos_clave": [
@@ -110,11 +110,11 @@
           "150",
           "214"
         ],
-        "similarity_score": 0.7003,
+        "similarity_score": 0.7002,
         "scores_rerank": [
-          0.8447,
+          0.8454,
           0.5308,
-          0.5269
+          0.5289
         ],
         "derogados": [],
         "motivo": "ok",
@@ -129,7 +129,7 @@
           "rr": 1.0
         }
       },
-      "respuesta": "Según el artículo 92 bis, el período de prueba en un contrato de trabajo por tiempo indeterminado es de seis meses.\n\nLas convenciones colectivas de trabajo pueden ampliar este período a ocho meses en empresas de 6 a 100 trabajadores, y a un año en empresas de hasta 5 trabajadores. Durante este lapso, cualquiera de las partes puede extinguir la relación sin expresión de causa ni derecho a indemnización.",
+      "respuesta": "Según el artículo 92 bis, el período de prueba en un contrato de trabajo por tiempo indeterminado dura seis meses.\n\nLas convenciones colectivas de trabajo pueden ampliar este período a ocho meses en empresas de 6 a 100 trabajadores, y a un año en empresas de hasta 5 trabajadores.",
       "motivos_revision": [],
       "comportamiento": "responder",
       "datos_clave": [
@@ -163,7 +163,7 @@
           "200",
           "197 bis"
         ],
-        "similarity_score": 0.6954,
+        "similarity_score": 0.6957,
         "scores_rerank": [
           0.8417,
           0.6989,
@@ -182,7 +182,7 @@
           "rr": 1.0
         }
       },
-      "respuesta": "Según el artículo 201, el empleador debe abonar un recargo del 50% sobre el salario habitual por horas suplementarias en días comunes, y del 100% en días sábado después de las 13 horas, domingos y feriados.\n\nEl artículo 201 establece que el recargo por horas extras se calcula sobre el salario habitual del trabajador. No se especifica un monto fijo, sino un porcentaje adicional que se aplica al salario del trabajador.",
+      "respuesta": "Según el artículo 201, el empleador deberá abonar al trabajador que prestare servicios en horas suplementarias, medie o no autorización del organismo administrativo competente, un recargo del cincuenta por ciento (50%) calculado sobre el salario habitual, si se tratare del días comunes, y del ciento por ciento (100%) en días sábado después de las trece (13) horas, domingo y feriados.",
       "motivos_revision": [],
       "comportamiento": "responder",
       "datos_clave": [
@@ -194,7 +194,7 @@
         "correcta": 5,
         "relevante": 5,
         "fundamentada": 5,
-        "comentario": "La respuesta es correcta, relevante y fundamentada en el artículo 201 de la Ley 20.744."
+        "comentario": "La respuesta es correcta, relevante y fundamentada, ya que cita directamente el artículo 201 y proporciona los porcentajes de recargo para horas extras en días comunes y en días sábado después de las 13 horas, domingos y feriados."
       },
       "comportamiento_ok": true
     },
@@ -236,7 +236,7 @@
           "rr": 1.0
         }
       },
-      "respuesta": "Según el artículo 158, inciso b), tenés diez días corridos de licencia por matrimonio.\n\nEste período es parte de las licencias especiales que establece la ley, y no se descuenta de las vacaciones anuales.",
+      "respuesta": "Según el artículo 158, inciso b), tenés diez (10) días corridos de licencia por matrimonio.",
       "motivos_revision": [],
       "comportamiento": "responder",
       "datos_clave": [
@@ -270,11 +270,11 @@
           "130",
           "126"
         ],
-        "similarity_score": 0.6403,
+        "similarity_score": 0.6405,
         "scores_rerank": [
-          0.5347,
+          0.5367,
           0.4762,
-          0.4684
+          0.4703
         ],
         "derogados": [],
         "motivo": "ok",
@@ -289,7 +289,7 @@
           "rr": 1.0
         }
       },
-      "respuesta": "El aguinaldo, o sueldo anual complementario, se abona en dos cuotas: la primera el 30 de junio y la segunda el 18 de diciembre de cada año, según el artículo 122.\n\nEl importe de cada cuota se calcula sobre el 50% de la mayor remuneración mensual devengada por todo concepto dentro de los dos semestres que culminan en junio y diciembre. Para la segunda cuota, el empleador debe estimar el salario de diciembre y, si hay diferencias, se procede a un recalculo y se integra la diferencia al salario de diciembre.",
+      "respuesta": "El aguinaldo, o sueldo anual complementario, se abona en dos cuotas: la primera el 30 de junio y la segunda el 18 de diciembre de cada año, según el artículo 122.\n\nEl importe de cada cuota se calcula sobre el 50% de la mayor remuneración mensual devengada por todo concepto dentro de los dos semestres que culminan en junio y diciembre. Para la segunda cuota, el empleador debe estimar el salario de diciembre y, si no coincide con el salario efectivamente devengado, se procede a recalcular la cuota. La diferencia se integra al salario del mes de diciembre.",
       "motivos_revision": [],
       "comportamiento": "responder",
       "datos_clave": [
@@ -301,7 +301,7 @@
         "correcta": 5,
         "relevante": 5,
         "fundamentada": 5,
-        "comentario": "La respuesta es precisa, relevante y está completamente fundamentada en el contexto proporcionado."
+        "comentario": "La respuesta es precisa, relevante y está completamente fundamentada en el artículo 122."
       },
       "comportamiento_ok": true
     },
@@ -343,7 +343,7 @@
           "rr": 1.0
         }
       },
-      "respuesta": "Según el artículo 231, el empleador debe dar un preaviso de un mes si el trabajador tiene una antigüedad en el empleo que no exceda de cinco años.\n\nEste plazo es para que el trabajador pueda buscar otro empleo y no quede desprotegido. Si el empleador no da el preaviso, debe pagar una indemnización equivalente a un mes de sueldo, según el artículo 231.",
+      "respuesta": "Según el artículo 231, el empleador debe dar un preaviso de un mes si el trabajador tiene una antigüedad en el empleo que no exceda de cinco años.\n\nEl preaviso es una comunicación que debe hacer el empleador al trabajador para informarle que va a disolver el contrato de trabajo. Este plazo es de un mes para los trabajadores con una antigüedad de hasta cinco años, y de dos meses para aquellos con más antigüedad.",
       "motivos_revision": [],
       "comportamiento": "responder",
       "datos_clave": [
@@ -352,9 +352,9 @@
       "cita_articulo_esperado": true,
       "juez": {
         "correcta": 5,
-        "relevante": 4,
+        "relevante": 5,
         "fundamentada": 5,
-        "comentario": "La respuesta es relevante pero no menciona explícitamente que el plazo de un mes se aplica a una antigüedad de hasta 5 años, lo cual es crucial para la pregunta específica."
+        "comentario": "La respuesta es correcta, relevante y fundamentada en el artículo 231."
       },
       "comportamiento_ok": true
     },
@@ -377,7 +377,7 @@
           "150",
           "194"
         ],
-        "similarity_score": 0.6856,
+        "similarity_score": 0.6854,
         "scores_rerank": [
           0.8882,
           0.4996,
@@ -396,7 +396,7 @@
           "rr": 1.0
         }
       },
-      "respuesta": "Según el artículo 158, inciso d), corresponden un (1) día de licencia por el fallecimiento de un hermano.\n\nEsta licencia es una de las licencias especiales que establece la ley, y se otorga al trabajador para que pueda ausentarse de su trabajo sin perder su remuneración.",
+      "respuesta": "Según el artículo 158, inciso d), corresponden un (1) día de licencia por el fallecimiento de un hermano.",
       "motivos_revision": [],
       "comportamiento": "responder",
       "datos_clave": [
@@ -449,7 +449,7 @@
           "rr": 1.0
         }
       },
-      "respuesta": "Según el artículo 200, la jornada de trabajo íntegramente nocturna no podrá exceder de siete (7) horas.\n\nSe considera trabajo nocturno el realizado entre las 21 horas de un día y las 6 horas del día siguiente. Esta limitación no aplica cuando se implementan horarios rotativos en el régimen de trabajo por equipos.",
+      "respuesta": "Según el artículo 200, la jornada de trabajo íntegramente nocturna no podrá exceder de siete (7) horas.\n\nSe entiende por jornada nocturna la que se cumple entre las 21:00 de un día y las 6:00 del siguiente. Esta limitación no aplica cuando se apliquen horarios rotativos del régimen de trabajo por equipos.",
       "motivos_revision": [],
       "comportamiento": "responder",
       "datos_clave": [
@@ -460,7 +460,7 @@
         "correcta": 5,
         "relevante": 5,
         "fundamentada": 5,
-        "comentario": "La respuesta es correcta, relevante y fundamentada en el artículo 200 de la Ley 20.744."
+        "comentario": "La respuesta es correcta, relevante y fundamentada, ya que cita directamente el artículo 200 y proporciona la información solicitada sin desviarse del tema."
       },
       "comportamiento_ok": true
     },
@@ -483,7 +483,7 @@
           "187",
           "189"
         ],
-        "similarity_score": 0.7081,
+        "similarity_score": 0.708,
         "scores_rerank": [
           0.8897,
           0.8702,
@@ -502,7 +502,7 @@
           "rr": 0.333
         }
       },
-      "respuesta": "Según el artículo 189, está prohibido ocupar a menores de 16 años en cualquier tipo de actividad laboral.\n\nSin embargo, el artículo 189 bis establece una excepción para empresas familiares, permitiendo que menores de 16 años y mayores de 14 trabajen en empresas de sus padres, madres o tutores, con jornadas limitadas a 3 horas diarias y 15 horas semanales, siempre que no se trate de tareas penosas, peligrosas o insalubres, y que cumplan con la asistencia escolar.",
+      "respuesta": "Según el artículo 189, queda prohibido a los empleadores ocupar personas menores de 16 años en cualquier tipo de actividad, persiga o no fines de lucro.\n\nEl artículo 189 bis establece una excepción para empresas cuyo titular sea el padre, madre o tutor del menor, en cuyo caso se permite ocupar a personas mayores de 14 años y menores de 16, con jornadas limitadas a 3 horas diarias y 15 horas semanales, siempre que no se trate de tareas penosas, peligrosas o insalubres, y que el menor cumpla con la asistencia escolar.",
       "motivos_revision": [],
       "comportamiento": "responder",
       "datos_clave": [
@@ -513,7 +513,7 @@
         "correcta": 4,
         "relevante": 3,
         "fundamentada": 5,
-        "comentario": "La respuesta es parcialmente relevante porque, aunque menciona la edad mínima de 16 años, no destaca claramente que esa es la edad a partir de la cual se puede trabajar en general, y se extiende en detalles sobre la excepción familiar que no son solicitados en la pregunta."
+        "comentario": "La respuesta es parcialmente relevante porque, aunque menciona la edad mínima de 16 años, no destaca claramente que esa es la edad a partir de la cual se puede trabajar en general, y se extiende en detalles sobre una excepción que no es el foco principal de la pregunta."
       },
       "comportamiento_ok": true
     },
@@ -587,11 +587,11 @@
           "118",
           "112"
         ],
-        "similarity_score": 0.691,
+        "similarity_score": 0.6904,
         "scores_rerank": [
-          0.6439,
-          0.633,
-          0.5405
+          0.6403,
+          0.6312,
+          0.5386
         ],
         "derogados": [],
         "motivo": "ok"
@@ -699,7 +699,7 @@
           "rr": 1.0
         }
       },
-      "respuesta": "Según el artículo 190, el trabajo nocturno para menores de 18 años está prohibido entre las 20 y las 6 horas del día siguiente. En el caso de establecimientos fabriles con tres turnos diarios, la prohibición se extiende de 22 a 6 horas, pero solo para menores de más de 16 años.\n\nEl artículo 200 define la jornada de trabajo íntegramente nocturna como aquella que se cumple entre las 21 y las 6 horas del día siguiente, y establece que no podrá exceder las 7 horas. Si se alternan horas diurnas con nocturnas, se reducirá la jornada en 8 minutos por cada hora nocturna trabajada o se pagarán esos minutos como tiempo suplementario.",
+      "respuesta": "La ley establece que la jornada de trabajo íntegramente nocturna no puede superar las siete horas, considerando como horario nocturno el comprendido entre las 21:00 y las 6:00 del día siguiente (artículo 200).\n\nEn caso de alternar horas diurnas con nocturnas, la jornada se reduce en ocho minutos por cada hora nocturna trabajada, o bien se pagan esos ocho minutos como tiempo suplementario. Además, el artículo 190 prohíbe el trabajo nocturno para menores de 18 años, con algunas excepciones para mayores de 16 en establecimientos fabriles con turnos rotativos.",
       "motivos_revision": [
         "cita_articulo_derogado"
       ],
@@ -709,10 +709,10 @@
       ],
       "cita_articulo_esperado": true,
       "juez": {
-        "correcta": 4,
+        "correcta": 5,
         "relevante": 5,
-        "fundamentada": 4,
-        "comentario": "La respuesta es correcta y relevante, pero no menciona el horario de inicio del trabajo nocturno para adultos (21 horas), que es un dato esperado."
+        "fundamentada": 5,
+        "comentario": "La respuesta es precisa, relevante y está bien fundamentada en los artículos proporcionados."
       },
       "comportamiento_ok": true
     },
@@ -733,7 +733,7 @@
           "106",
           "105"
         ],
-        "similarity_score": 0.5106,
+        "similarity_score": 0.5111,
         "scores_rerank": [
           0.4938,
           0.4587,
@@ -742,7 +742,7 @@
         "derogados": [],
         "motivo": "ok"
       },
-      "respuesta": "Según el artículo 131, no se puede deducir, retener o compensar suma alguna que rebaje el monto de las remuneraciones. Esto incluye la prohibición de pagos en especie, como tickets de comida.\n\nLa ley establece que las remuneraciones deben ser pagadas en dinero, sin posibilidad de reemplazarlas con mercaderías, alimentos, vivienda o cualquier otra prestación en especie.",
+      "respuesta": "Según el artículo 131, no se puede deducir, retener o compensar suma alguna que rebaje el monto de las remuneraciones. Esto incluye la prohibición de descuentos, retenciones o compensaciones por entrega de mercaderías, provisión de alimentos, vivienda o alojamiento, entre otras prestaciones en dinero o en especie.",
       "motivos_revision": [
         "confianza_baja"
       ],
@@ -751,9 +751,9 @@
       "cita_articulo_esperado": null,
       "juez": {
         "correcta": 5,
-        "relevante": 5,
+        "relevante": 4,
         "fundamentada": 5,
-        "comentario": "La respuesta es correcta, relevante y fundamentada en el artículo 131 de la Ley 20.744."
+        "comentario": "La respuesta es parcialmente relevante porque, aunque cita correctamente el artículo 131, no menciona explícitamente los 'tickets de comida' como forma prohibida de pago, aunque se infiere de la prohibición de prestaciones en especie."
       },
       "comportamiento_ok": true
     }
