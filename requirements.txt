@@ -21,3 +21,7 @@ lxml==6.0.2
 
 # Interfaz grafica opcional (gui.py). No es parte de la API.
 streamlit==1.64.0
+
+# Pruebas automaticas (pytest). httpx lo usa el TestClient de FastAPI.
+pytest==9.1.1
+httpx==0.28.1

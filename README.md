@@ -463,6 +463,44 @@ sobreviven a un reinicio de la API.
 
 ## 🧪 Verificación
 
+### Pruebas automáticas
+
+```bash
+pytest -v
+```
+
+28 pruebas de punta a punta sobre la API, en menos de un segundo. **No
+llaman a Cohere ni necesitan la base vectorial:** ambos se reemplazan por
+versiones falsas (`tests/conftest.py`) que responden lo que cada prueba
+necesita. Así no gastan llamadas de la API, dan siempre el mismo resultado,
+corren en cualquier computadora y permiten provocar casos difíciles de
+conseguir con el modelo real (Cohere caído, reranker caído, salida
+degenerada). Lo que se prueba es el código propio: filtros, umbrales, Human
+in the Loop, caché y manejo de errores.
+
+| Caso que pide la consigna      | Qué se prueba                                                                                         |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------- |
+| Pregunta válida                | Responde con `estado: respondida`, `grounded: true` y aviso legal; la misma pregunta escrita distinto sale del caché |
+| Sin evidencia suficiente       | Fuera de tema corta antes del reranker y del LLM; si el reranker descarta todo, no se llama al LLM; si el modelo dice que no alcanza, `grounded: false` |
+| Recuperación de fuentes        | `/ask` devuelve las fuentes en el orden del reranker; `/retrieve` muestra los fragmentos sin llamar al LLM, filtra derogados por metadata y explica por qué algo no es pertinente |
+| Respuesta del LLM              | Se entrega el texto generado, sin emojis; una salida degenerada se reintenta                          |
+| Human in the Loop              | Derogado, confianza baja y reranker caído quedan en `pending_approval`; el usuario no ve el texto y el revisor sí; aprobar entrega y cachea; rechazar detiene y no regenera; una pregunta pendiente repetida no duplica la revisión |
+| Error controlado               | `422` (pregunta vacía, JSON roto, `top_k` fuera de rango, revisor sin nombre), `503` sin detalles internos si Cohere cae, `404` y `409` en revisiones |
+
+Para comprobar que las pruebas detectan fallas se rompió el código a
+propósito: con el umbral de HITL en 0.40 fallan 6 pruebas, y sin caché
+fallan 2.
+
+Hay además una prueba real contra Cohere, que no corre por defecto porque
+gasta llamadas:
+
+```bash
+PRUEBA_REAL=1 pytest -m real -v          # bash
+$env:PRUEBA_REAL=1; pytest -m real -v    # PowerShell
+```
+
+### Pruebas manuales contra Cohere
+
 Probado end-to-end contra la API de Cohere con el texto completo de la ley cargado:
 
 | Caso                                                                                | Resultado                                                                 |
@@ -493,6 +531,11 @@ Probado end-to-end contra la API de Cohere con el texto completo de la ley carga
   durante el desarrollo de este mismo proyecto. Los tres modelos usados están
   centralizados en constantes al inicio de `rag.py` para poder actualizarlos
   sin tocar el resto del código.
+- **Límites de la clave Trial de Cohere.** 1000 llamadas por mes, 20 por
+  minuto al chat y 10 por minuto al reranker. Cada consulta nueva a `/ask`
+  usa 3 (embedding, rerank, chat), y una corrida de la evaluación unas 70.
+  Durante el desarrollo el cupo mensual se agotó: por eso las pruebas
+  automáticas no llaman a Cohere.
 - **Revisor sin autenticación.** Los endpoints de revisión no piden
   credenciales: el nombre del revisor se declara. En producción irían detrás
   de un login con rol de revisor.
