@@ -5,7 +5,7 @@ FastAPI valida automáticamente con estas clases: una consulta vacía
 ni siquiera llega al endpoint.
 """
 
-from typing import List, Optional
+from typing import List, Literal, Optional
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -89,8 +89,23 @@ class AskResponse(BaseModel):
 
     Los campos de transparencia (fuentes, similarity_score, grounded,
     aviso) van SIEMPRE, haya respuesta o no.
+
+    Si estado es pending_approval, "respuesta" NO trae el texto generado:
+    trae cómo seguir la revisión con id_revision.
     """
     pregunta: str
+    estado: Literal["respondida", "pending_approval", "rechazada"] = Field(
+        "respondida",
+        description="respondida: se entrega. pending_approval: espera revisión humana. "
+                    "rechazada: un revisor no la aprobó",
+    )
+    id_revision: Optional[str] = Field(
+        None, description="Para consultar el resultado en GET /revisiones/{id}"
+    )
+    motivos_revision: List[str] = Field(
+        [], description="Por qué necesita revisión: cita_articulo_derogado, "
+                        "confianza_baja, confianza_no_medida",
+    )
     respuesta: str
     fuentes: List[Fuente] = []
     similarity_score: float = Field(..., ge=0.0, le=1.0)
@@ -101,6 +116,44 @@ class AskResponse(BaseModel):
         False, description="Si la respuesta se reutilizó de una consulta anterior"
     )
     aviso: str
+
+
+class ResolucionRequest(BaseModel):
+    """POST /revisiones/{id}/aprobar y /rechazar"""
+    revisor: str = Field(
+        ..., min_length=1, max_length=100,
+        description="Quién toma la decisión (queda registrado)",
+        examples=["Dra. Pérez"],
+    )
+    comentario: Optional[str] = Field(
+        None, max_length=500,
+        examples=["El art. 173 está derogado: no aplica."],
+    )
+
+
+class RevisionPendiente(BaseModel):
+    """Lo que ve el revisor: incluye la respuesta propuesta por la IA."""
+    id: str
+    pregunta: str
+    motivos: List[str]
+    propuesta: AskResponse
+    creada: str
+
+
+class EstadoRevision(BaseModel):
+    """
+    Lo que ve el usuario. La respuesta solo aparece si fue aprobada:
+    mientras está pendiente, el texto generado no sale de la API.
+    """
+    id: str
+    estado: Literal["pendiente", "aprobada", "rechazada"]
+    pregunta: str
+    motivos: List[str]
+    respuesta: Optional[AskResponse] = None
+    revisor: Optional[str] = None
+    comentario: Optional[str] = None
+    creada: str
+    resuelta: Optional[str] = None
 
 
 class ErrorResponse(BaseModel):

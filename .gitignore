@@ -30,3 +30,5 @@ __pycache__/
 Thumbs.db
 desktop.ini
 .DS_Store
+# Revisiones de Human in the Loop (se generan con el uso)
+revisiones.json

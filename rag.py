@@ -337,16 +337,43 @@ def generar_respuesta(pregunta, contexto):
 
 CONSULTA: {pregunta}"""
 
-    respuesta = co.chat(
-        model=MODELO_CHAT,
-        messages=[
-            {"role": "system", "content": INSTRUCCIONES},
-            {"role": "user", "content": mensaje_usuario},
-        ],
-        temperature=TEMPERATURA,
-    )
+    # Si el modelo devuelve una salida degenerada, se reintenta una vez.
+    # Si falla de nuevo, se levanta un error: es preferible un 503 a
+    # entregar (y guardar en el caché) una respuesta basura.
+    for intento in (1, 2):
+        respuesta = co.chat(
+            model=MODELO_CHAT,
+            messages=[
+                {"role": "system", "content": INSTRUCCIONES},
+                {"role": "user", "content": mensaje_usuario},
+            ],
+            temperature=TEMPERATURA,
+            max_tokens=MAX_TOKENS,
+        )
+        texto = respuesta.message.content[0].text.strip()
 
-    return respuesta.message.content[0].text.strip()
+        if not es_degenerada(texto):
+            return texto
+        logger.warning("Salida degenerada del modelo (intento %d, %d caracteres)",
+                       intento, len(texto))
+
+    raise RuntimeError("El modelo devolvió una salida degenerada dos veces")
+
+
+# Caso real observado: con temperature=0, command-a devolvió una vez
+# "Según el artículo 201..." reemplazado por miles de "3" seguidos.
+# No se pudo reproducir, así que no se puede evitar: hay que detectarlo.
+# Arranca en un carácter que no sea espacio, para no marcar sangrías.
+PATRON_REPETICION = re.compile(r"(\S.{0,9}?)\1{15,}", re.DOTALL)
+
+# 150 palabras en español son unos 250 tokens: 400 deja margen para una
+# respuesta normal y corta un bucle antes de que crezca.
+MAX_TOKENS = 400
+
+
+def es_degenerada(texto):
+    """True si la salida es un bucle de repetición (ej. "3333..." o "abcabc...")."""
+    return not texto or bool(PATRON_REPETICION.search(texto))
 
 
 # ---------------------------------------------------------------------------

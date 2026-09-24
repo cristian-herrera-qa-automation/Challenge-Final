@@ -26,6 +26,7 @@ _Challenge Final — Get Talent (Pi Data)_
 - [Base de conocimiento](#-base-de-conocimiento)
 - [Calidad de respuesta](#-calidad-de-respuesta)
 - [IA Responsable](#-ia-responsable)
+- [Human in the Loop](#-human-in-the-loop)
 - [Verificación](#-verificación)
 - [Limitaciones](#-limitaciones-conocidas)
 
@@ -93,9 +94,19 @@ Se abre sola en el navegador en `http://localhost:8501`.
 | 🔍  | `POST` | `/retrieve` | **Solo retrieval**: devuelve los fragmentos recuperados con sus scores, sin llamar al LLM |
 | 💬  | `POST` | `/ask`      | Pregunta → retrieval → contexto → prompt → LLM → respuesta + fuentes                |
 
+**Human in the Loop** (ver [la sección](#-human-in-the-loop)):
+
+|     | Método | Ruta                             | Quién la usa | Descripción                                               |
+| :-: | :----: | -------------------------------- | ------------ | --------------------------------------------------------- |
+| 📥  | `GET`  | `/revisiones/pendientes`         | Revisor      | Respuestas retenidas, con la propuesta de la IA y el motivo |
+| ✅  | `POST` | `/revisiones/{id}/aprobar`       | Revisor      | La respuesta se entrega y pasa al caché                   |
+| ❌  | `POST` | `/revisiones/{id}/rechazar`      | Revisor      | La respuesta no se entrega nunca                          |
+| 🔎  | `GET`  | `/revisiones/{id}`               | Usuario      | Estado de su consulta; el texto aparece solo si fue aprobada |
+
 Todos los errores salen con el mismo formato `{"error": "..."}`: `422` si la
 entrada es inválida (pregunta vacía, JSON mal formado), `503` si Cohere no
-responde, `404` si la ruta no existe.
+responde, `404` si la ruta o la revisión no existe, `409` si se intenta resolver una
+revisión ya resuelta.
 
 <details>
 <summary><b>Ver ejemplo de <code>/retrieve</code></b></summary>
@@ -211,6 +222,7 @@ licencias especiales, jornada laboral y despido.
 ├── 📥 ingesta.py            Parte por artículo, arma metadata, carga ChromaDB (se corre 1 vez)
 ├── 🐍 main.py               API: /health, /retrieve, /ask. Guardrail, caché, orquesta la respuesta
 ├── 🧠 rag.py                Retrieval (búsqueda + filtros + reranking), prompt, generación
+├── 🧑‍⚖️ revisiones.py        Human in the Loop: criterios de riesgo y cola de revisión
 ├── 📋 schemas.py            Contratos de entrada y salida (Pydantic)
 ├── 📄 ley/ley_20744.txt     El texto fuente, limpio (175.753 caracteres)
 └── 🔐 .env                  Clave de Cohere (no versionado)
@@ -231,7 +243,11 @@ flowchart LR
     I --> J{"¿Rerank ><br/>0.30?"}
     J -->|No| H
     J -->|Sí| K["🤖 LLM genera<br/>con temp=0"]
-    K --> L["💾 Guarda en<br/>caché"]
+    K --> M{"¿Derogado o<br/>confianza baja?"}
+    M -->|No| L["💾 Guarda en<br/>caché"]
+    M -->|Sí| N["🧑‍⚖️ pending_approval<br/>(revisión humana)"]
+    N -->|Aprueba| L
+    N -->|Rechaza| O["⛔ No se entrega"]
 ```
 
 Dos filtros en cascada, cada uno con su propia escala y su propia calibración
@@ -345,6 +361,22 @@ caché sí.
 
 ---
 
+### Validación de la salida
+
+Durante las pruebas, `command-a` devolvió dos veces una salida degenerada
+—la respuesta sobre horas extra se convirtió en miles de `3` seguidos— pese a
+`temperature = 0`. No se pudo reproducir a voluntad, así que no se puede
+evitar: hay que detectarla.
+
+- `max_tokens = 400`: una respuesta normal ocupa ~250; un bucle se corta antes
+  de crecer.
+- Un detector de repetición (`es_degenerada()` en `rag.py`) revisa cada salida.
+  Si la detecta, reintenta una vez; si vuelve a fallar, responde `503` y **no
+  guarda nada en el caché**. Es preferible un error honesto a una respuesta
+  basura que además quedaría fija para siempre.
+
+---
+
 ## 🛡️ IA Responsable
 
 |     | Práctica                   | Implementación                                                                                                                                                                                                                    |
@@ -355,6 +387,76 @@ caché sí.
 | ⚖️  | **Equidad**                | Filtro de lenguaje inapropiado con límite de palabra (`\b`), para no marcar términos legítimos que contengan una palabra bloqueada                                                                                                |
 | 📋  | **No asesoramiento legal** | Aviso explícito en cada respuesta: es información general, no reemplaza a un profesional del derecho                                                                                                                              |
 | 🔍  | **Trazabilidad**           | Cada consulta tiene un ID de traza; el log reconstruye los 5 pasos de la decisión (guardrail → caché → búsqueda → filtros → generación)                                                                                           |
+
+---
+
+## 🧑‍⚖️ Human in the Loop
+
+```
+IA analiza → evalúa si requiere supervisión → revisión humana → aprobar o rechazar → entregar o detener
+```
+
+### Qué hace la IA sola y qué requiere a una persona
+
+| La IA resuelve sola                                                      | Requiere revisión humana (`pending_approval`)                               |
+| ------------------------------------------------------------------------ | --------------------------------------------------------------------------- |
+| Respuestas con evidencia clara: la mejor fuente tiene rerank ≥ 0.50      | **Confianza baja:** la mejor fuente quedó entre 0.30 y 0.50                 |
+| Rechazar consultas fuera de tema o con lenguaje inapropiado              | **Artículo derogado** entre las fuentes finales de la respuesta             |
+| Decir "no cuento con información suficiente" (se niega: no hay riesgo)   | **Sin medida de confianza:** el reranker no respondió                        |
+
+El criterio es la **calidad de la evidencia, no el tema**. Una consulta
+sobre despido o indemnización se responde sola si la ley la contesta con
+claridad: frenarla no protegería a nadie, y como son de las consultas más
+frecuentes, saturaría al revisor hasta que apruebe sin leer.
+
+### Qué riesgo se mitiga
+
+Que el sistema entregue **con apariencia de certeza** una respuesta que no
+está bien respaldada, en un dominio donde el usuario puede tomar decisiones
+económicas o legales con ella.
+
+- **Confianza baja:** las consultas pertinentes calibradas dieron un rerank
+  de 0.57 a 0.91, y las ajenas de 0.09 a 0.11. La franja 0.30–0.50 pasa el
+  filtro pero ninguna medición la respalda: ahí decide mejor una persona que
+  un umbral.
+- **Derogados:** la base tiene 16 artículos derogados, varios por la reforma
+  de marzo de 2026 (Ley 27.802). Si uno queda en el contexto, alguien tiene
+  que verificar que la respuesta no se apoye en él.
+
+### Casos reales (reproducibles para la demo)
+
+| Consulta                               | Motivo                        | Qué encontró el revisor                                                                | Decisión     |
+| -------------------------------------- | ----------------------------- | -------------------------------------------------------------------------------------- | ------------ |
+| "qué dice la ley del trabajo nocturno" | `cita_articulo_derogado` (173) | La respuesta se apoya en los arts. 190 y 200, vigentes. El 173 no se usó               | ✅ Aprobar   |
+| "me pueden pagar con tickets de comida" | `confianza_baja` (0.48)       | Responde "no, según el art. 131", pero el 131 trata retenciones: no responde eso       | ❌ Rechazar  |
+
+El segundo caso muestra por qué hace falta: la respuesta suena segura, cita
+un artículo real, y está mal fundamentada.
+
+### Cómo funciona
+
+1. `POST /ask` genera la respuesta igual, pero si hay motivos de riesgo **no
+   la entrega**: devuelve `estado: "pending_approval"`, un `id_revision` y los
+   `motivos_revision`. Las fuentes sí se muestran.
+2. El revisor ve la cola en `GET /revisiones/pendientes`, con la respuesta
+   propuesta, las fuentes y el motivo.
+3. Aprueba o rechaza con `POST /revisiones/{id}/aprobar` o `/rechazar`. El
+   nombre del revisor es obligatorio y queda registrado, junto con su
+   comentario y la fecha.
+4. El usuario consulta `GET /revisiones/{id}`: si fue aprobada recibe la
+   respuesta; si fue rechazada, un aviso de que no se pudo confirmar.
+
+Reglas que cierran el circuito:
+
+- Una respuesta pendiente **nunca** entra al caché: solo las aprobadas.
+- Si se repite una pregunta pendiente, devuelve la misma revisión (no crea
+  otra ni vuelve a llamar al modelo).
+- Si se repite una pregunta rechazada, se respeta la decisión: no se genera
+  de nuevo para que salga sola.
+- Una revisión resuelta no se puede volver a resolver (`409`).
+
+Las revisiones se guardan en `revisiones.json` (no versionado), así
+sobreviven a un reinicio de la API.
 
 ---
 
@@ -390,6 +492,9 @@ Probado end-to-end contra la API de Cohere con el texto completo de la ley carga
   durante el desarrollo de este mismo proyecto. Los tres modelos usados están
   centralizados en constantes al inicio de `rag.py` para poder actualizarlos
   sin tocar el resto del código.
+- **Revisor sin autenticación.** Los endpoints de revisión no piden
+  credenciales: el nombre del revisor se declara. En producción irían detrás
+  de un login con rol de revisor.
 - **Caché en archivo local.** Sirve para la demo y para el requisito de
   determinismo; en un despliegue con múltiples instancias necesitaría una
   base compartida (Redis, por ejemplo).

@@ -41,6 +41,15 @@ def mostrar_resultado(datos):
     if datos["desde_cache"]:
         st.caption("⚡ Respuesta guardada de una consulta anterior")
 
+    if datos["estado"] == "pending_approval":
+        st.warning(
+            f"🕒 Esta consulta quedó **en revisión humana** "
+            f"(id `{datos['id_revision']}`). "
+            f"Motivo: {', '.join(datos['motivos_revision'])}."
+        )
+    elif datos["estado"] == "rechazada":
+        st.error("Un revisor rechazó la respuesta a esta consulta.")
+
     st.markdown(datos["respuesta"])
 
     if datos["fuentes"]:

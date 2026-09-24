@@ -8,6 +8,12 @@ Endpoints:
     GET  /health     estado del servicio y de la base vectorial
     POST /retrieve   solo retrieval: qué fragmentos se recuperan y por qué
     POST /ask        pregunta -> retrieval -> contexto -> prompt -> LLM -> respuesta + fuentes
+
+Human in the Loop:
+    GET  /revisiones/pendientes        el revisor ve qué espera aprobación
+    GET  /revisiones/{id}              el usuario consulta cómo terminó su pregunta
+    POST /revisiones/{id}/aprobar      el revisor aprueba: la respuesta se entrega
+    POST /revisiones/{id}/rechazar     el revisor rechaza: la respuesta no sale
 """
 
 import re
@@ -15,6 +21,8 @@ import json
 import uuid
 import logging
 import unicodedata
+
+from typing import List
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
@@ -25,8 +33,10 @@ from dotenv import load_dotenv
 load_dotenv()  # antes de importar rag: ahí se lee la API key
 
 import rag
+import revisiones
 from schemas import (
     PreguntaRequest, RetrieveRequest, RetrieveResponse, AskResponse, ErrorResponse,
+    ResolucionRequest, RevisionPendiente, EstadoRevision,
 )
 
 
@@ -58,7 +68,18 @@ AVISO_LEGAL = (
     "consultá a un profesional del derecho."
 )
 
+EN_REVISION = (
+    "Tu consulta necesita la revisión de una persona antes de responderse, "
+    "porque la evidencia encontrada requiere verificación (ver motivos_revision). "
+    "Consultá el resultado en GET /revisiones/{id}."
+)
+RECHAZADA = (
+    "Un revisor no pudo confirmar una respuesta confiable para esta consulta "
+    "en la Ley 20.744. Te recomendamos consultar a un profesional del derecho."
+)
+
 ERRORES = {503: {"model": ErrorResponse, "description": "Cohere no respondió"}}
+NO_EXISTE = {404: {"model": ErrorResponse, "description": "No existe esa revisión"}}
 
 
 app = FastAPI(
@@ -155,6 +176,7 @@ async def health():
         "umbral_similitud": rag.UMBRAL_SIMILITUD,
         "umbral_rerank": rag.UMBRAL_RERANK,
         "respuestas_en_cache": len(cache),
+        "revisiones_pendientes": len(revisiones.pendientes()),
     }
 
 
@@ -213,6 +235,17 @@ async def ask(req: PreguntaRequest):
         guardada["desde_cache"] = True
         return AskResponse(**guardada)
 
+    # --- ¿Esta misma pregunta ya pasó por revisión humana? ---
+    # Pendiente: no generamos otra. Rechazada: respetamos la decisión.
+    # (Las aprobadas ya están en el caché.)
+    previa = revisiones.buscar_por_clave(clave)
+    if previa and previa["estado"] == revisiones.PENDIENTE:
+        logger.info("PASO 2 HITL | traza=%s | sigue pendiente id=%s", traza, previa["id"])
+        return _respuesta_en_revision(req.pregunta, previa)
+    if previa and previa["estado"] == revisiones.RECHAZADA:
+        logger.info("PASO 2 HITL | traza=%s | rechazada antes id=%s", traza, previa["id"])
+        return _respuesta_rechazada(req.pregunta, previa)
+
     # --- Retrieval: búsqueda + filtro de similitud + reranking ---
     try:
         resultado = rag.recuperar(req.pregunta, traza=traza)
@@ -250,6 +283,18 @@ async def ask(req: PreguntaRequest):
         aviso=AVISO_LEGAL,
     )
 
+    # --- Human in the Loop: ¿se puede entregar sin que la mire nadie? ---
+    # Si el modelo ya dijo que no tiene información, no hay nada que
+    # revisar: se está negando a responder.
+    motivos = revisiones.evaluar_riesgo(respuesta.model_dump()["fuentes"]) if fundamentada else []
+    if motivos:
+        id_revision = revisiones.crear(clave, req.pregunta, respuesta.model_dump(), motivos)
+        logger.warning(
+            "PASO 6 HITL | traza=%s | pending_approval id=%s | motivos=%s",
+            traza, id_revision, motivos,
+        )
+        return _respuesta_en_revision(req.pregunta, revisiones.obtener(id_revision))
+
     # Guardamos para que la próxima vez la respuesta sea idéntica
     cache[clave] = respuesta.model_dump()
     _guardar_cache()
@@ -263,6 +308,72 @@ async def ask(req: PreguntaRequest):
 
 
 # ---------------------------------------------------------------------------
+# Human in the Loop: revisión de respuestas
+# ---------------------------------------------------------------------------
+
+# Va antes que /revisiones/{id_revision}: si no, "pendientes" se tomaría
+# como un id.
+@app.get("/revisiones/pendientes", response_model=List[RevisionPendiente])
+async def revisiones_pendientes():
+    """Para el revisor: las respuestas que esperan aprobación, con la propuesta de la IA."""
+    return [RevisionPendiente(**r) for r in revisiones.pendientes()]
+
+
+@app.get("/revisiones/{id_revision}", response_model=EstadoRevision, responses=NO_EXISTE)
+async def estado_revision(id_revision: str):
+    """Para el usuario: cómo terminó su consulta. La respuesta aparece solo si fue aprobada."""
+    return _estado_para_usuario(_revision_o_404(id_revision))
+
+
+YA_RESUELTA = {409: {"model": ErrorResponse, "description": "Ya fue resuelta"}}
+
+
+@app.post("/revisiones/{id_revision}/aprobar", response_model=EstadoRevision,
+          responses={**NO_EXISTE, **YA_RESUELTA})
+async def aprobar(id_revision: str, req: ResolucionRequest):
+    """El revisor aprueba: la respuesta se entrega y queda en el caché."""
+    revision = _resolver(id_revision, True, req)
+
+    # Desde ahora, la misma pregunta se responde directo con lo aprobado
+    cache[revision["clave"]] = revision["propuesta"]
+    _guardar_cache()
+
+    return _estado_para_usuario(revision)
+
+
+@app.post("/revisiones/{id_revision}/rechazar", response_model=EstadoRevision,
+          responses={**NO_EXISTE, **YA_RESUELTA})
+async def rechazar(id_revision: str, req: ResolucionRequest):
+    """El revisor rechaza: la respuesta generada no se entrega nunca."""
+    return _estado_para_usuario(_resolver(id_revision, False, req))
+
+
+def _revision_o_404(id_revision):
+    revision = revisiones.obtener(id_revision)
+    if not revision:
+        raise HTTPException(status_code=404, detail="No existe esa revisión")
+    return revision
+
+
+def _resolver(id_revision, aprobada, req):
+    revision = _revision_o_404(id_revision)
+    if revision["estado"] != revisiones.PENDIENTE:
+        raise HTTPException(status_code=409, detail=f"La revisión ya fue {revision['estado']}")
+
+    revision = revisiones.resolver(id_revision, aprobada, req.revisor, req.comentario)
+    logger.info("HITL | revision=%s | %s por revisor", id_revision, revision["estado"])
+    return revision
+
+
+def _estado_para_usuario(revision):
+    return EstadoRevision(
+        **{k: revision[k] for k in ("id", "estado", "pregunta", "motivos",
+                                    "revisor", "comentario", "creada", "resuelta")},
+        respuesta=revision["propuesta"] if revision["estado"] == revisiones.APROBADA else None,
+    )
+
+
+# ---------------------------------------------------------------------------
 # Raíz
 # ---------------------------------------------------------------------------
 
@@ -271,7 +382,9 @@ async def raiz():
     return {
         "servicio": "Asistente de Consulta - Ley de Contrato de Trabajo",
         "ley": "20.744",
-        "endpoints": ["GET /health", "POST /retrieve", "POST /ask"],
+        "endpoints": ["GET /health", "POST /retrieve", "POST /ask",
+                      "GET /revisiones/pendientes", "GET /revisiones/{id}",
+                      "POST /revisiones/{id}/aprobar", "POST /revisiones/{id}/rechazar"],
         "documentacion": "/docs",
     }
 
@@ -290,6 +403,35 @@ def _fuente(a):
         "score": a["score"],
         "score_rerank": a.get("score_rerank"),
     }
+
+
+def _respuesta_en_revision(pregunta, revision):
+    """La respuesta generada queda retenida: solo se informa cómo seguirla."""
+    propuesta = revision["propuesta"]
+    return AskResponse(
+        pregunta=pregunta,
+        estado="pending_approval",
+        id_revision=revision["id"],
+        motivos_revision=revision["motivos"],
+        respuesta=EN_REVISION.format(id=revision["id"]),
+        fuentes=propuesta["fuentes"],
+        similarity_score=propuesta["similarity_score"],
+        grounded=False,
+        aviso=AVISO_LEGAL,
+    )
+
+
+def _respuesta_rechazada(pregunta, revision):
+    return AskResponse(
+        pregunta=pregunta,
+        estado="rechazada",
+        id_revision=revision["id"],
+        motivos_revision=revision["motivos"],
+        respuesta=RECHAZADA,
+        similarity_score=revision["propuesta"]["similarity_score"],
+        grounded=False,
+        aviso=AVISO_LEGAL,
+    )
 
 
 def _respuesta_simple(pregunta, texto, score=0.0):
