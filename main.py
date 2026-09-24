@@ -68,10 +68,11 @@ AVISO_LEGAL = (
     "consultá a un profesional del derecho."
 )
 
+# Mensaje para la persona que pregunta. Los datos técnicos (id y motivos)
+# viajan en sus propios campos: id_revision y motivos_revision.
 EN_REVISION = (
     "Tu consulta necesita la revisión de una persona antes de responderse, "
-    "porque la evidencia encontrada requiere verificación (ver motivos_revision). "
-    "Consultá el resultado en GET /revisiones/{id}."
+    "porque la evidencia encontrada requiere verificación."
 )
 RECHAZADA = (
     "Un revisor no pudo confirmar una respuesta confiable para esta consulta "
@@ -413,7 +414,7 @@ def _respuesta_en_revision(pregunta, revision):
         estado="pending_approval",
         id_revision=revision["id"],
         motivos_revision=revision["motivos"],
-        respuesta=EN_REVISION.format(id=revision["id"]),
+        respuesta=EN_REVISION,
         fuentes=propuesta["fuentes"],
         similarity_score=propuesta["similarity_score"],
         grounded=False,

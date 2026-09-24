@@ -36,21 +36,31 @@ def preguntar_a_la_api(pregunta):
     return respuesta.json()
 
 
+# Los motivos de revisión que manda la API, dichos para una persona.
+MOTIVOS = {
+    "cita_articulo_derogado": "la respuesta usa un artículo derogado",
+    "confianza_baja": "la evidencia encontrada es débil",
+    "confianza_no_medida": "no se pudo medir qué tan confiable es",
+}
+
+
 def mostrar_resultado(datos):
     """Pinta en pantalla la respuesta de la API."""
     if datos["desde_cache"]:
         st.caption("⚡ Respuesta guardada de una consulta anterior")
 
     if datos["estado"] == "pending_approval":
+        motivos = [MOTIVOS.get(m, m) for m in datos["motivos_revision"]]
         st.warning(
-            f"🕒 Esta consulta quedó **en revisión humana** "
-            f"(id `{datos['id_revision']}`). "
-            f"Motivo: {', '.join(datos['motivos_revision'])}."
+            "🕒 **Tu consulta quedó en revisión.** Una persona tiene que "
+            "confirmar la respuesta antes de mostrarla, porque "
+            f"{' y '.join(motivos)}."
         )
+        st.caption(f"Número de revisión: {datos['id_revision']}")
     elif datos["estado"] == "rechazada":
-        st.error("Un revisor rechazó la respuesta a esta consulta.")
-
-    st.markdown(datos["respuesta"])
+        st.error(datos["respuesta"])
+    else:
+        st.markdown(datos["respuesta"])
 
     if datos["fuentes"]:
         st.markdown("**Artículos citados:**")
