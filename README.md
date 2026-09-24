@@ -35,13 +35,28 @@ _Challenge Final — Get Talent (Pi Data)_
 
 ## 🎯 El problema
 
-Consultar la Ley de Contrato de Trabajo (20.744) hoy significa buscar en un texto
-de más de 280 artículos, con reformas recientes (Ley 27.802, marzo 2026) que
-sustituyeron o derogaron partes del articulado. Encontrar el artículo correcto
-—y saber si sigue vigente— no es inmediato.
+|                  |                                                                                                                                                                                                                                                  |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Problema**     | La Ley de Contrato de Trabajo (20.744) tiene más de 280 artículos y fue reformada en marzo de 2026 (Ley 27.802), que sustituyó o derogó partes del articulado. Encontrar el artículo que responde una duda concreta —y saber si sigue vigente— no es inmediato. |
+| **Usuario**      | Trabajadores y empleadores sin formación jurídica, que tienen una duda puntual: cuántos días de vacaciones les tocan, cuánto dura el período de prueba, con cuánta anticipación hay que avisar un despido.                                          |
+| **Necesidad**    | Una respuesta en lenguaje simple, **con el artículo exacto** para poder verificarla, que advierta si la norma está derogada y que diga "no sé" cuando la ley no lo dice, en vez de inventar.                                                        |
+| **Solución**     | Un asistente RAG que responde **solo con el texto vigente de la ley**, cita el artículo, advierte los derogados, se niega cuando la evidencia no alcanza y manda a **revisión humana** las respuestas con evidencia dudosa.                          |
 
-Este asistente responde en lenguaje natural, cita el artículo exacto, advierte
-si está derogado, y se niega a responder sobre cualquier tema fuera de la ley.
+### Por qué IA, y por qué RAG
+
+- **Por qué no un buscador por palabras:** la gente no pregunta con las
+  palabras de la ley. Dice "aguinaldo", "casamiento" u "hora extra"; la ley
+  dice "sueldo anual complementario", "matrimonio" y "horas suplementarias".
+  La búsqueda semántica por embeddings encuentra el artículo igual: en la
+  [evaluación](#-evaluación), esas tres preguntas trajeron el artículo
+  correcto en primer lugar.
+- **Por qué no un chatbot general sin RAG:** lo que sabe un modelo puede ser
+  anterior a la reforma de 2026, no dice de dónde saca cada dato y, si no
+  sabe, puede inventar. Con RAG cada respuesta sale del texto vigente, trae
+  sus fuentes y, si el texto no lo dice, el sistema se niega.
+- **Por qué no reentrenar un modelo (fine-tuning):** la ley cambia. Con RAG,
+  actualizarla es volver a descargar el texto y correr la ingesta, sin
+  entrenar nada.
 
 ---
 
@@ -196,27 +211,37 @@ mensaje claro en vez de romperse.
 
 ## ❓ Preguntas de ejemplo
 
-Diez consultas pensadas para alguien que no conoce la ley y quiere saber
-qué le corresponde. Cubren los temas más consultados de la Ley 20.744:
-vacaciones, período de prueba, preaviso, sueldo anual complementario,
-licencias especiales, jornada laboral y despido.
+Todas salen del dataset de evaluación (`eval/dataset.json`) y se probaron
+contra Cohere. Sirven para ver cada comportamiento del sistema.
 
-1. ¿Cuántos días de vacaciones me corresponden según mi antigüedad?
-2. ¿Qué es el período de prueba y cuánto dura?
-3. ¿Cuánto tiempo de preaviso debe dar el empleador antes de un despido?
-4. ¿Qué es el sueldo anual complementario y cuándo se paga?
-5. ¿Qué licencia especial otorga la ley por nacimiento de un hijo?
-6. ¿Cuántos días de licencia corresponden por matrimonio?
-7. ¿Qué días de licencia se otorgan por fallecimiento de un familiar directo?
-8. ¿Qué dice la ley sobre la jornada de trabajo y el descanso semanal?
-9. ¿Qué indemnización corresponde si me despiden sin causa justificada?
-10. ¿Qué licencia paga corresponde por enfermedad o accidente que no sea
-    laboral?
+**Se responden, citando el artículo:**
 
-> Estas preguntas no se probaron una por una contra la API antes de
-> publicarlas acá; se eligieron por tratarse de institutos que la Ley 20.744
-> regula de forma directa. Se recomienda ejecutarlas una vez antes de la
-> presentación.
+| Pregunta                                                                                                     | Artículo | Dato clave               |
+| ------------------------------------------------------------------------------------------------------------ | :------: | ------------------------ |
+| ¿Cuántos días de vacaciones me corresponden con 8 años de antigüedad?                                         |   150    | 21 días corridos         |
+| ¿Cuánto dura el período de prueba?                                                                            |  92 bis  | 6 meses                  |
+| ¿Cuánto se paga la hora extra?                                                                                |   201    | 50% y 100%               |
+| ¿Cuántos días de licencia me dan por casamiento?                                                              |   158    | 10 días corridos         |
+| ¿Cuándo se paga el aguinaldo?                                                                                 |   122    | 30 de junio y 18 de diciembre |
+| Si tengo 3 años de antigüedad, ¿con cuánta anticipación me tiene que avisar el empleador antes de despedirme? |   231    | 1 mes                    |
+| ¿Cuántos días de licencia corresponden por el fallecimiento de un hermano?                                    |   158    | 1 día                    |
+| ¿Cuántas horas puede durar como máximo una jornada íntegramente nocturna?                                     |   200    | 7 horas                  |
+| ¿A partir de qué edad se puede trabajar?                                                                      |   189    | 16 años                  |
+| ¿Durante cuánto tiempo se presume que un despido es por causa del embarazo?                                   |   178    | 7 meses y medio          |
+
+**Se niega, porque la ley no tiene el dato:**
+
+- ¿Cuál es el monto actual del salario mínimo vital y móvil?
+- ¿Cuántos días de licencia me corresponden por mudanza?
+
+**Corta sin llamar al modelo, porque no es sobre la ley:**
+
+- ¿Cuál es la capital de Francia?
+
+**Queda en revisión humana (`pending_approval`):**
+
+- ¿Qué dice la ley del trabajo nocturno? — recupera el art. 173, derogado.
+- ¿Me pueden pagar con tickets de comida? — la evidencia es débil (rerank 0.49).
 
 ---
 
@@ -230,7 +255,12 @@ licencias especiales, jornada laboral y despido.
 ├── 🧠 rag.py                Retrieval (búsqueda + filtros + reranking), prompt, generación
 ├── 🧑‍⚖️ revisiones.py        Human in the Loop: criterios de riesgo y cola de revisión
 ├── 📋 schemas.py            Contratos de entrada y salida (Pydantic)
+├── 🖥️ gui.py                Interfaz gráfica opcional (Streamlit), le pide a /ask
 ├── 📄 ley/ley_20744.txt     El texto fuente, limpio (175.753 caracteres)
+├── 📊 eval/                 Dataset de 15 preguntas, script de evaluación y resultados
+├── 🧪 tests/                Pruebas automáticas (pytest), sin llamar a Cohere
+├── 📝 docs/                 Reporte de evaluación (HTML y Word)
+├── 📓 documento_proceso.md  Cómo armé el proyecto, decisiones y aprendizajes
 └── 🔐 .env                  Clave de Cohere (no versionado)
 ```
 
@@ -480,7 +510,7 @@ económicas o legales con ella.
 | Consulta                               | Motivo                        | Qué encontró el revisor                                                                | Decisión     |
 | -------------------------------------- | ----------------------------- | -------------------------------------------------------------------------------------- | ------------ |
 | "qué dice la ley del trabajo nocturno" | `cita_articulo_derogado` (173) | La respuesta se apoya en los arts. 190 y 200, vigentes. El 173 no se usó               | ✅ Aprobar   |
-| "me pueden pagar con tickets de comida" | `confianza_baja` (0.48)       | Responde "no, según el art. 131", pero el 131 trata descuentos. Lo que dice que el salario se paga en dinero es el art. 105, y no considera los beneficios sociales del 103 bis, que ni se recuperó | ❌ Rechazar  |
+| "me pueden pagar con tickets de comida" | `confianza_baja` (0.49)       | Responde "no, según el art. 131", pero el 131 trata descuentos. Lo que dice que el salario se paga en dinero es el art. 105, y no considera los beneficios sociales del 103 bis, que ni se recuperó | ❌ Rechazar  |
 
 El segundo caso muestra por qué hace falta: la respuesta suena segura, cita
 un artículo real, y está mal fundamentada. En la evaluación, el LLM-as-a-Judge

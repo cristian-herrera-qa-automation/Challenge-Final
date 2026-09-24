@@ -194,6 +194,154 @@ concreto que pedía la pregunta no estaba en el texto.
 
 ---
 
+## Adaptar el proyecto a la consigna final
+
+Yo había empezado el proyecto con anticipación, antes de que nos
+compartieran la consigna real del challenge. Cuando la leí, me di cuenta
+de que tenía buena parte hecha, pero que la API no tenía los endpoints que
+se pedían, que faltaba una evaluación formal y que no tenía ningún punto de
+control humano. Así que antes de agregar nada nuevo, hice una lista de lo
+que pedía la consigna punto por punto y la comparé con lo que ya tenía.
+
+Lo primero fue reorganizar la API. Antes tenía un solo endpoint
+(`/consultar`) que hacía todo junto: buscaba, filtraba y generaba la
+respuesta. La consigna pedía poder ver qué artículos encuentra el sistema
+**sin** que el modelo genere nada, así que separé la búsqueda en una
+función propia y armé tres endpoints: `/health` para saber si el servicio
+está bien, `/retrieve` para ver solo lo que se recupera, y `/ask` para la
+pregunta completa. Lo bueno es que `/retrieve` y `/ask` usan exactamente la
+misma función de búsqueda, así que lo que veo en uno es lo mismo que usa el
+otro.
+
+También pasé las instrucciones del modelo a lo que se llama "system
+prompt", que es un lugar separado de la pregunta del usuario, y las ordené
+por secciones: qué rol tiene, cómo usar la evidencia, qué hacer cuando no
+hay información, qué no puede hacer y cómo tiene que ser la respuesta.
+
+Antes de tocar nada guardé todo en Git, para poder volver atrás si rompía
+algo.
+
+---
+
+## Agregar un control humano (Human in the Loop)
+
+La consigna pedía identificar al menos una situación donde una persona
+tenga que revisar antes de que el sistema siga. La primera idea que surgió
+fue mandar a revisión todas las consultas sobre despidos, indemnizaciones o
+sanciones, porque son temas delicados. Pero lo pensé y no me convenció: si
+alguien pregunta cuánto preaviso le corresponde y la ley lo dice
+clarísimo, frenar esa respuesta no protege a nadie, solo la demora. Además,
+esas son de las preguntas más comunes, y si todas van a revisión, el
+revisor termina aprobando sin leer.
+
+Entonces decidí que lo que define si hace falta una persona no es el tema
+de la pregunta, sino **qué tan buena es la evidencia**. Quedaron dos
+criterios:
+
+- Cuando entre los artículos que usa la respuesta hay uno **derogado**. La
+  ley tiene 16 artículos derogados, varios por la reforma de este año, y
+  alguien tiene que confirmar que la respuesta no se apoya en uno de ellos.
+- Cuando la **confianza es baja**, o sea, cuando el mejor artículo tiene un
+  puntaje de reranking entre 0.30 y 0.50. En mis mediciones, las preguntas
+  que sí eran sobre la ley daban 0.57 o más, y las que no tenían nada que
+  ver daban 0.11 o menos. Lo del medio es una zona gris que ninguna
+  medición respalda, y ahí prefiero que decida una persona.
+
+Cuando pasa alguna de esas dos cosas, el sistema genera la respuesta
+igual, pero no la muestra: queda "pendiente de aprobación" hasta que un
+revisor la aprueba o la rechaza.
+
+Para probarlo busqué preguntas reales que cayeran en cada caso, y una me
+sirvió mucho para entender por qué esto hace falta. Pregunté "¿me pueden
+pagar con tickets de comida?" y el sistema respondió que no, "según el
+artículo 131". Suena convincente, pero cuando fui a leer el artículo 131,
+habla de los descuentos que no se pueden hacer sobre el sueldo, no de cómo
+se paga. Lo que dice que el sueldo se paga en dinero es el artículo 105. La
+respuesta sonaba segura, citaba un artículo real, y estaba mal
+fundamentada. Ese es justo el tipo de error que un revisor tiene que
+atajar.
+
+---
+
+## Evaluar el sistema
+
+Hasta acá yo había probado el sistema con preguntas sueltas, pero la
+consigna pedía una evaluación de verdad. Armé un grupo de 15 preguntas y,
+para cada una, anoté leyendo la ley qué artículo la responde y qué dato
+tiene que aparecer en la respuesta. Traté de meter trampas: preguntas con
+palabras que la ley no usa ("aguinaldo" en vez de "sueldo anual
+complementario"), preguntas donde el tema es de la ley pero el dato no
+está, una pregunta que no tiene nada que ver y los dos casos de revisión
+humana.
+
+Medí tres cosas por separado: si el sistema encontró el artículo correcto,
+si hizo lo que tenía que hacer (responder, negarse, cortar o mandar a
+revisión) y si la respuesta era correcta y estaba respaldada por el texto.
+Para esto último usé otro modelo como "juez" que le pone puntaje a cada
+respuesta, y además las leí yo una por una comparándolas con la ley.
+
+Los resultados fueron buenos: el sistema hizo lo correcto en las 15
+preguntas y, con el reranking, encontró el artículo correcto en todas las
+que tenían uno. Sin el reranking hubiera fallado una. Pero lo más
+interesante fue lo que encontré al leer las respuestas a mano: en 3 de
+ellas el modelo agregó frases que no estaban en los artículos que le había
+pasado. Por ejemplo, en la del preaviso explicó "para qué sirve" el
+preaviso, algo que la ley no dice, y dio un dato que sale de otro artículo
+que ni siquiera se había recuperado. Las respuestas eran correctas en lo
+principal y las frases agregadas sonaban razonables, por eso es difícil
+darse cuenta.
+
+Y el juez no se dio cuenta: les puso el puntaje máximo en "fundamentada" a
+las tres, y también a la de los tickets. Aprendí que si uso el mismo modelo
+para generar y para evaluar, comparte las mismas cegueras. El número del
+juez me hubiera hecho creer que el sistema no inventaba nada. Esto me
+confirmó que el control humano tiene que ser una persona y no otro modelo.
+
+Con ese hallazgo ajusté el prompt: agregué una regla para que no sume
+explicaciones ni consecuencias que no estén escritas en los artículos,
+aunque sean ciertas. Todavía me falta volver a correr la evaluación para
+ver si mejoró.
+
+---
+
+## Cuando el modelo se rompe
+
+Durante las pruebas me pasó algo que no esperaba: una vez, en vez de
+responder sobre las horas extra, el modelo devolvió miles de "3" seguidos.
+Y lo peor es que esa respuesta quedó guardada, así que si alguien volvía a
+preguntar lo mismo, iba a recibir esa basura. No lo pude repetir a
+propósito, pero volvió a pasar varias veces, incluso con la temperatura en
+0.
+
+Como no lo puedo evitar, lo que hice fue detectarlo: el sistema revisa si
+la respuesta es una repetición sin sentido y, si lo es, vuelve a intentar
+hasta tres veces. Si igual falla, devuelve un error en vez de guardar algo
+roto. En la evaluación pasó en una pregunta: falló dos veces seguidas y al
+tercer intento salió bien. Aprendí que la temperatura en 0 no garantiza que
+el modelo se comporte siempre igual, y que hay que revisar lo que devuelve
+antes de confiar en eso.
+
+---
+
+## Pruebas automáticas y el límite de la API
+
+En el medio del trabajo me quedé sin llamadas a Cohere: la clave gratuita
+tiene un límite de 1000 por mes, y entre las pruebas y la evaluación se
+agotó. Tuve que crear otra cuenta. Eso me hizo pensar distinto las pruebas
+automáticas: en lugar de que cada prueba llame a Cohere, armé una versión
+"falsa" de Cohere y de la base de datos que responde lo que cada prueba
+necesita. Así las 28 pruebas corren en menos de un segundo, sin gastar
+ninguna llamada, y además puedo simular cosas que con el servicio real no
+puedo provocar a propósito, como que Cohere se caiga o que el modelo
+devuelva la basura de los "3".
+
+Como QA, hice algo que siempre hago cuando todas las pruebas pasan de
+entrada: rompí el código a propósito para confirmar que las pruebas se dan
+cuenta. Cambié el umbral de revisión humana y fallaron 6 pruebas; desactivé
+el caché y fallaron 2. Una prueba que nunca falla no me dice nada.
+
+---
+
 ## Cómo trabajé
 
 No escribí todo el código de una sola vez ni de memoria. Fui construyendo
