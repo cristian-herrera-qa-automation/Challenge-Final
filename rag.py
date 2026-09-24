@@ -25,9 +25,16 @@ MODELO_CHAT = "command-a-03-2025"
 MODELO_RERANK = "rerank-v4.0-fast"
 
 # Cuántos artículos se recuperan por similitud antes de reordenar.
+# Se pide de más a propósito: el embedding no siempre deja el artículo
+# correcto arriba (caso real: en "período de prueba" entraba el art. 50,
+# que trata la prueba del contrato). Con 10 candidatos el reranker
+# tiene margen para reordenar.
 CANDIDATOS = 10
 
 # Cuántos quedan finalmente como contexto para el modelo.
+# Las consultas típicas se responden con 1 artículo, o con 2 que se
+# remiten entre sí (ej. 92 bis y 231). Más contexto aumenta el riesgo
+# de que el modelo cite artículos que no responden la consulta.
 TOP_K = 3
 
 # Umbral de pertinencia sobre la similitud de embeddings.
@@ -104,12 +111,15 @@ def _distancia_a_similitud(distancia):
     return max(0.0, min(1.0, 1.0 - distancia))
 
 
-def buscar(consulta, top_k=CANDIDATOS):
+def buscar(consulta, top_k=CANDIDATOS, excluir_derogados=False):
     """
     Busca los artículos más relevantes para la consulta.
 
     Devuelve una lista de diccionarios con el texto del artículo,
     su metadata y el score de similitud.
+
+    Con excluir_derogados=True se usa la metadata para filtrar en la
+    propia búsqueda: los artículos derogados ni siquiera compiten.
     """
     respuesta = co.embed(
         texts=[consulta],
@@ -124,6 +134,7 @@ def buscar(consulta, top_k=CANDIDATOS):
     resultados = coleccion.query(
         query_embeddings=[vector],
         n_results=top_k * 3,
+        where={"derogado": False} if excluir_derogados else None,
     )
 
     if not resultados["ids"] or not resultados["ids"][0]:
@@ -196,6 +207,71 @@ def reordenar(consulta, articulos, top_n=TOP_K):
 
 
 # ---------------------------------------------------------------------------
+# 3 bis. Retrieval completo (búsqueda + filtros + reranking)
+# ---------------------------------------------------------------------------
+
+def recuperar(consulta, top_k=TOP_K, excluir_derogados=False, traza="-"):
+    """
+    Ejecuta todo el retrieval SIN llamar al modelo generativo.
+
+    Lo usan /retrieve (para inspeccionar qué se recupera) y /ask (para
+    responder), así los dos ven exactamente los mismos fragmentos.
+
+    Devuelve un diccionario:
+      - pertinente:  si hay evidencia suficiente para responder
+      - motivo:      por qué se decidió eso
+      - fragmentos:  si es pertinente, los que pasaron los dos filtros;
+                     si no, los mejores candidatos, para poder ver por qué
+      - similarity_score: el mejor score de similitud
+    """
+    candidatos = buscar(consulta, excluir_derogados=excluir_derogados)
+
+    if not candidatos:
+        logger.info("PASO 3 BUSQUEDA | traza=%s | sin resultados", traza)
+        return _resultado(False, "sin_resultados", [], 0.0)
+
+    mejor = candidatos[0]
+    logger.info(
+        "PASO 3 BUSQUEDA | traza=%s | %d candidatos | mejor=%s score=%.4f",
+        traza, len(candidatos), mejor["articulo"], mejor["score"],
+    )
+
+    # Filtro 1 (barato): ¿la consulta es sobre la ley? Si no supera el
+    # umbral, cortamos acá y nos ahorramos el reranker y el modelo.
+    if mejor["score"] < UMBRAL_SIMILITUD:
+        logger.info(
+            "PASO 4 PERTINENCIA | traza=%s | score=%.4f < umbral=%.2f | fuera de tema",
+            traza, mejor["score"], UMBRAL_SIMILITUD,
+        )
+        return _resultado(False, "similitud_bajo_umbral",
+                          candidatos[:top_k], mejor["score"])
+
+    # Filtro 2: de los candidatos, cuáles responden REALMENTE
+    reordenados = reordenar(consulta, candidatos, top_n=top_k)
+    relevantes = [a for a in reordenados
+                  if a.get("score_rerank", 1.0) >= UMBRAL_RERANK]
+
+    if not relevantes:
+        logger.info("PASO 4 RERANK | traza=%s | ningun articulo relevante", traza)
+        return _resultado(False, "rerank_bajo_umbral", reordenados, mejor["score"])
+
+    logger.info(
+        "PASO 4 RERANK | traza=%s | %s",
+        traza, [(a["articulo"], a.get("score_rerank")) for a in relevantes],
+    )
+    return _resultado(True, "ok", relevantes, mejor["score"])
+
+
+def _resultado(pertinente, motivo, fragmentos, score):
+    return {
+        "pertinente": pertinente,
+        "motivo": motivo,
+        "fragmentos": fragmentos,
+        "similarity_score": score,
+    }
+
+
+# ---------------------------------------------------------------------------
 # 4. Armado del contexto
 # ---------------------------------------------------------------------------
 
@@ -227,35 +303,46 @@ SIN_CONTEXTO = (
     "para responder a esta consulta."
 )
 
-INSTRUCCIONES = f"""Sos un asistente que responde consultas sobre la Ley de Contrato de Trabajo argentina (Ley 20.744).
+# System prompt: define rol, uso de evidencia, restricciones, formato y
+# qué hacer cuando no hay información. Va separado de la consulta del
+# usuario (role "system"), así lo que escriba el usuario no se mezcla
+# con las reglas.
+INSTRUCCIONES = f"""ROL
+Sos un asistente que informa qué dice la Ley de Contrato de Trabajo argentina (Ley 20.744). Tus usuarios son trabajadores y empleadores sin formación jurídica.
 
-REGLAS QUE DEBES CUMPLIR SIEMPRE:
+USO DE LA EVIDENCIA
+1. Respondé ÚNICAMENTE con la información de los artículos del CONTEXTO. No agregues conocimiento propio, otras leyes, convenios colectivos ni interpretaciones.
+2. Citá siempre el número de artículo en el que te basás. Ejemplo: "según el artículo 150".
+3. Si un artículo del contexto figura como DEROGADO, advertilo explícitamente y no lo presentes como vigente.
 
-1. Respondé ÚNICAMENTE con la información del contexto. No agregues conocimiento propio ni interpretaciones.
-2. Si la respuesta no está en el contexto, respondé exactamente: "{SIN_CONTEXTO}"
-3. Citá siempre el número de artículo en el que te basás. Ejemplo: "según el artículo 150".
-4. Si un artículo del contexto figura como DEROGADO, advertilo explícitamente.
+CUANDO NO HAY INFORMACIÓN SUFICIENTE
+4. Si el contexto no alcanza para responder, respondé exactamente: "{SIN_CONTEXTO}" No completes con suposiciones.
+
+RESTRICCIONES
 5. Respondé SIEMPRE en español, sin importar el idioma de la pregunta.
-6. No uses emojis ni símbolos decorativos.
-7. No des consejos legales ni opiniones. Limitate a informar qué dice la ley.
-8. No hagas juicios de valor sobre empleadores ni trabajadores.
-9. Sé claro y conciso. Si la ley establece plazos o montos, indicalos con precisión."""
+6. No des consejos legales ni opiniones. Limitate a informar qué dice la ley.
+7. No hagas juicios de valor sobre empleadores ni trabajadores.
+8. No uses emojis ni símbolos decorativos.
+
+FORMATO DE LA RESPUESTA
+9. Primera oración: la respuesta directa a la consulta, con el artículo citado.
+10. Después, si hace falta, los detalles (plazos, montos, condiciones) en uno o dos párrafos breves. Si la ley establece plazos o montos, indicalos con precisión.
+11. Texto plano, sin títulos ni tablas. Como máximo 150 palabras."""
 
 
 def generar_respuesta(pregunta, contexto):
     """Le pide al modelo que responda usando solo el contexto recuperado."""
-    prompt = f"""{INSTRUCCIONES}
-
-CONTEXTO (artículos de la Ley 20.744):
+    mensaje_usuario = f"""CONTEXTO (artículos de la Ley 20.744):
 {contexto}
 
-CONSULTA: {pregunta}
-
-RESPUESTA:"""
+CONSULTA: {pregunta}"""
 
     respuesta = co.chat(
         model=MODELO_CHAT,
-        messages=[{"role": "user", "content": prompt}],
+        messages=[
+            {"role": "system", "content": INSTRUCCIONES},
+            {"role": "user", "content": mensaje_usuario},
+        ],
         temperature=TEMPERATURA,
     )
 

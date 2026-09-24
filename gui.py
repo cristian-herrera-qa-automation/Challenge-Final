@@ -13,7 +13,7 @@ Se abre sola en el navegador, normalmente en http://localhost:8501
 import requests
 import streamlit as st
 
-URL_API = "http://localhost:8000/consultar"
+URL_API = "http://localhost:8000/ask"
 
 
 st.set_page_config(page_title="Asistente Ley 20.744", page_icon="⚖️")
@@ -43,9 +43,9 @@ def mostrar_resultado(datos):
 
     st.markdown(datos["respuesta"])
 
-    if datos["articulos"]:
+    if datos["fuentes"]:
         st.markdown("**Artículos citados:**")
-        for art in datos["articulos"]:
+        for art in datos["fuentes"]:
             etiqueta = f"Art. {art['articulo']} — {art['titulo']}"
             if art["derogado"]:
                 etiqueta += " ⚠️ DEROGADO"

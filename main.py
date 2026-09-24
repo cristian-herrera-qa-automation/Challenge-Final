@@ -3,6 +3,11 @@ main.py — La API del asistente sobre la Ley de Contrato de Trabajo.
 
 Levantar con:  uvicorn main:app --reload
 Documentación: http://localhost:8000/docs
+
+Endpoints:
+    GET  /health     estado del servicio y de la base vectorial
+    POST /retrieve   solo retrieval: qué fragmentos se recuperan y por qué
+    POST /ask        pregunta -> retrieval -> contexto -> prompt -> LLM -> respuesta + fuentes
 """
 
 import re
@@ -12,13 +17,17 @@ import logging
 import unicodedata
 
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from dotenv import load_dotenv
 
 load_dotenv()  # antes de importar rag: ahí se lee la API key
 
 import rag
-from schemas import ConsultaRequest, ConsultaResponse
+from schemas import (
+    PreguntaRequest, RetrieveRequest, RetrieveResponse, AskResponse, ErrorResponse,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -49,18 +58,37 @@ AVISO_LEGAL = (
     "consultá a un profesional del derecho."
 )
 
+ERRORES = {503: {"model": ErrorResponse, "description": "Cohere no respondió"}}
+
 
 app = FastAPI(
     title="Asistente de Consulta - Ley de Contrato de Trabajo",
     description="Sistema RAG sobre la Ley 20.744 (Argentina)",
-    version="1.0",
+    version="2.0",
 )
 
 
-@app.exception_handler(HTTPException)
-async def formato_de_error(request: Request, exc: HTTPException):
+# Se registra sobre la excepción de Starlette (la base de la de FastAPI)
+# para cubrir también los errores que arma el framework: 404, cuerpo
+# mal formado, etc.
+@app.exception_handler(StarletteHTTPException)
+async def formato_de_error(request: Request, exc: StarletteHTTPException):
     """Todos los errores salen como {"error": "..."} y sin detalles internos."""
     return JSONResponse(status_code=exc.status_code, content={"error": exc.detail})
+
+
+@app.exception_handler(RequestValidationError)
+async def error_de_validacion(request: Request, exc: RequestValidationError):
+    """Una entrada inválida (ej. pregunta vacía) sale con el mismo formato."""
+    primero = exc.errors()[0]
+    # loc es ("body", "pregunta") para un campo, o ("body", 13) cuando el
+    # JSON está roto (13 = posición del error): solo nombramos campos.
+    campo = ".".join(p for p in primero["loc"] if isinstance(p, str) and p != "body")
+    mensaje = primero["msg"].removeprefix("Value error, ")
+    return JSONResponse(
+        status_code=422,
+        content={"error": f"{campo}: {mensaje}" if campo else mensaje},
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -105,11 +133,69 @@ def clave_cache(pregunta):
 
 
 # ---------------------------------------------------------------------------
-# POST /consultar
+# GET /health
 # ---------------------------------------------------------------------------
 
-@app.post("/consultar", response_model=ConsultaResponse)
-async def consultar(req: ConsultaRequest):
+@app.get("/health")
+async def health():
+    """Verifica que la base vectorial esté cargada. Útil antes de una demo."""
+    try:
+        fragmentos = rag.coleccion.count()
+    except Exception as e:
+        logger.error("HEALTH | base vectorial no disponible: %s", type(e).__name__)
+        fragmentos = 0
+
+    return {
+        "status": "ok" if fragmentos > 0 else "degradado",
+        "fragmentos_indexados": fragmentos,
+        "modelo_embeddings": rag.MODELO_EMBEDDINGS,
+        "modelo_chat": rag.MODELO_CHAT,
+        "modelo_rerank": rag.MODELO_RERANK,
+        "top_k": rag.TOP_K,
+        "umbral_similitud": rag.UMBRAL_SIMILITUD,
+        "umbral_rerank": rag.UMBRAL_RERANK,
+        "respuestas_en_cache": len(cache),
+    }
+
+
+# ---------------------------------------------------------------------------
+# POST /retrieve — solo retrieval, para inspeccionarlo sin generar
+# ---------------------------------------------------------------------------
+
+@app.post("/retrieve", response_model=RetrieveResponse, responses=ERRORES)
+async def retrieve(req: RetrieveRequest):
+    traza = uuid.uuid4().hex[:8]
+    logger.info("PASO 1 RETRIEVE | traza=%s | largo=%d", traza, len(req.pregunta))
+
+    try:
+        resultado = rag.recuperar(
+            req.pregunta,
+            top_k=req.top_k,
+            excluir_derogados=req.excluir_derogados,
+            traza=traza,
+        )
+    except Exception as e:
+        logger.error("PASO 3 BUSQUEDA | traza=%s | fallo: %s", traza, type(e).__name__)
+        raise HTTPException(status_code=503, detail=SERVICIO_CAIDO)
+
+    return RetrieveResponse(
+        pregunta=req.pregunta,
+        pertinente=resultado["pertinente"],
+        motivo=resultado["motivo"],
+        similarity_score=resultado["similarity_score"],
+        umbral_similitud=rag.UMBRAL_SIMILITUD,
+        umbral_rerank=rag.UMBRAL_RERANK,
+        fragmentos=[{**_fuente(a), "texto": a["texto"]}
+                    for a in resultado["fragmentos"]],
+    )
+
+
+# ---------------------------------------------------------------------------
+# POST /ask — pregunta completa: retrieval + generación
+# ---------------------------------------------------------------------------
+
+@app.post("/ask", response_model=AskResponse, responses=ERRORES)
+async def ask(req: PreguntaRequest):
     traza = uuid.uuid4().hex[:8]
     logger.info("PASO 1 CONSULTA | traza=%s | largo=%d", traza, len(req.pregunta))
 
@@ -125,57 +211,20 @@ async def consultar(req: ConsultaRequest):
         guardada = dict(cache[clave])
         guardada["pregunta"] = req.pregunta
         guardada["desde_cache"] = True
-        return ConsultaResponse(**guardada)
+        return AskResponse(**guardada)
 
-    # --- Búsqueda en la base vectorial ---
+    # --- Retrieval: búsqueda + filtro de similitud + reranking ---
     try:
-        articulos = rag.buscar(req.pregunta)
+        resultado = rag.recuperar(req.pregunta, traza=traza)
     except Exception as e:
         logger.error("PASO 3 BUSQUEDA | traza=%s | fallo: %s", traza, type(e).__name__)
         raise HTTPException(status_code=503, detail=SERVICIO_CAIDO)
 
-    if not articulos:
-        logger.info("PASO 3 BUSQUEDA | traza=%s | sin resultados", traza)
-        return _respuesta_simple(req.pregunta, FUERA_DE_TEMA)
+    if not resultado["pertinente"]:
+        return _respuesta_simple(req.pregunta, FUERA_DE_TEMA,
+                                 resultado["similarity_score"])
 
-    mejor = articulos[0]
-    logger.info(
-        "PASO 3 BUSQUEDA | traza=%s | %d candidatos | mejor=%s score=%.4f",
-        traza, len(articulos), mejor["articulo"], mejor["score"],
-    )
-
-    # --- Filtro 1 (barato): ¿la consulta es sobre la ley? ---
-    # Si no supera el umbral de similitud, cortamos acá y nos ahorramos
-    # la llamada al reranker y al modelo.
-    if mejor["score"] < rag.UMBRAL_SIMILITUD:
-        logger.info(
-            "PASO 4 PERTINENCIA | traza=%s | score=%.4f < umbral=%.2f | fuera de tema",
-            traza, mejor["score"], rag.UMBRAL_SIMILITUD,
-        )
-        return _respuesta_simple(req.pregunta, FUERA_DE_TEMA, mejor["score"])
-
-    # --- Reranking: de los candidatos, cuáles responden REALMENTE ---
-    try:
-        articulos = rag.reordenar(req.pregunta, articulos)
-    except Exception as e:
-        logger.error("PASO 4 RERANK | traza=%s | fallo: %s", traza, type(e).__name__)
-        raise HTTPException(status_code=503, detail=SERVICIO_CAIDO)
-
-    # --- Filtro 2: descartar los que el reranker considera irrelevantes ---
-    articulos = [
-        a for a in articulos
-        if a.get("score_rerank", 1.0) >= rag.UMBRAL_RERANK
-    ]
-
-    if not articulos:
-        logger.info("PASO 4 RERANK | traza=%s | ningun articulo relevante", traza)
-        return _respuesta_simple(req.pregunta, FUERA_DE_TEMA, mejor["score"])
-
-    logger.info(
-        "PASO 4 RERANK | traza=%s | %s",
-        traza,
-        [(a["articulo"], a.get("score_rerank")) for a in articulos],
-    )
+    articulos = resultado["fragmentos"]
 
     # --- Generación ---
     contexto = rag.armar_contexto(articulos)
@@ -191,18 +240,11 @@ async def consultar(req: ConsultaRequest):
     # Si lo dijo, grounded va en False aunque el score haya pasado.
     fundamentada = rag.SIN_CONTEXTO.lower()[:40] not in texto.lower()
 
-    respuesta = ConsultaResponse(
+    respuesta = AskResponse(
         pregunta=req.pregunta,
         respuesta=texto,
-        articulos=[{
-            "articulo": a["articulo"],
-            "titulo": f"{a['titulo']} - {a['titulo_nombre']}".strip(" -"),
-            "capitulo": f"{a['capitulo']} - {a['capitulo_nombre']}".strip(" -"),
-            "derogado": a["derogado"],
-            "score": a["score"],
-            "score_rerank": a.get("score_rerank"),
-        } for a in articulos],
-        similarity_score=mejor["score"],
+        fuentes=[_fuente(a) for a in articulos],
+        similarity_score=resultado["similarity_score"],
         grounded=fundamentada,
         desde_cache=False,
         aviso=AVISO_LEGAL,
@@ -221,7 +263,7 @@ async def consultar(req: ConsultaRequest):
 
 
 # ---------------------------------------------------------------------------
-# Otros endpoints
+# Raíz
 # ---------------------------------------------------------------------------
 
 @app.get("/")
@@ -229,35 +271,33 @@ async def raiz():
     return {
         "servicio": "Asistente de Consulta - Ley de Contrato de Trabajo",
         "ley": "20.744",
-        "endpoint": "/consultar",
+        "endpoints": ["GET /health", "POST /retrieve", "POST /ask"],
         "documentacion": "/docs",
     }
 
 
-@app.get("/estado")
-async def estado():
-    """Verifica que la base vectorial esté cargada. Útil antes de una demo."""
+# ---------------------------------------------------------------------------
+# Auxiliares
+# ---------------------------------------------------------------------------
+
+def _fuente(a):
+    """Pasa un artículo recuperado al formato que devuelve la API."""
     return {
-        "fragmentos_indexados": rag.coleccion.count(),
-        "modelo_embeddings": rag.MODELO_EMBEDDINGS,
-        "modelo_chat": rag.MODELO_CHAT,
-        "modelo_rerank": rag.MODELO_RERANK,
-        "umbral_similitud": rag.UMBRAL_SIMILITUD,
-        "umbral_rerank": rag.UMBRAL_RERANK,
-        "respuestas_en_cache": len(cache),
+        "articulo": a["articulo"],
+        "titulo": f"{a['titulo']} - {a['titulo_nombre']}".strip(" -"),
+        "capitulo": f"{a['capitulo']} - {a['capitulo_nombre']}".strip(" -"),
+        "derogado": a["derogado"],
+        "score": a["score"],
+        "score_rerank": a.get("score_rerank"),
     }
 
 
-# ---------------------------------------------------------------------------
-# Auxiliar
-# ---------------------------------------------------------------------------
-
 def _respuesta_simple(pregunta, texto, score=0.0):
-    """Respuesta sin artículos: bloqueada o fuera de tema."""
-    return ConsultaResponse(
+    """Respuesta sin fuentes: bloqueada o fuera de tema."""
+    return AskResponse(
         pregunta=pregunta,
         respuesta=texto,
-        articulos=[],
+        fuentes=[],
         similarity_score=score,
         grounded=False,
         desde_cache=False,

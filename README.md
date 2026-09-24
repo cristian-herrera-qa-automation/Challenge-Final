@@ -19,7 +19,7 @@ _Challenge Final — Get Talent (Pi Data)_
 
 - [El problema](#-el-problema)
 - [Instalación](#-instalación)
-- [Endpoint](#-endpoint)
+- [Endpoints](#-endpoints)
 - [Interfaz gráfica](#-interfaz-gráfica-opcional)
 - [Preguntas de ejemplo](#-preguntas-de-ejemplo)
 - [Arquitectura](#-arquitectura)
@@ -72,7 +72,7 @@ uvicorn main:app --reload
 ```
 
 > 💡 Documentación interactiva en **http://localhost:8000/docs**
-> Verificación rápida en **http://localhost:8000/estado**
+> Verificación rápida en **http://localhost:8000/health**
 
 **5.** (Opcional) Levantar la interfaz gráfica, en **otra terminal**, con la API
 del paso 4 corriendo
@@ -85,40 +85,73 @@ Se abre sola en el navegador en `http://localhost:8501`.
 
 ---
 
-## 🔌 Endpoint
+## 🔌 Endpoints
 
-|     | Método | Ruta         | Descripción                                                      |
-| :-: | :----: | ------------ | ---------------------------------------------------------------- |
-| 💬  | `POST` | `/consultar` | Responde una consulta en lenguaje natural sobre la Ley 20.744    |
-| 📊  | `GET`  | `/estado`    | Fragmentos indexados, modelos en uso, umbrales, tamaño del caché |
-| ℹ️  | `GET`  | `/`          | Información general del servicio                                 |
+|     | Método | Ruta        | Descripción                                                                         |
+| :-: | :----: | ----------- | ----------------------------------------------------------------------------------- |
+| 💚  | `GET`  | `/health`   | Estado del servicio: fragmentos indexados, modelos, Top-K, umbrales, caché          |
+| 🔍  | `POST` | `/retrieve` | **Solo retrieval**: devuelve los fragmentos recuperados con sus scores, sin llamar al LLM |
+| 💬  | `POST` | `/ask`      | Pregunta → retrieval → contexto → prompt → LLM → respuesta + fuentes                |
+
+Todos los errores salen con el mismo formato `{"error": "..."}`: `422` si la
+entrada es inválida (pregunta vacía, JSON mal formado), `503` si Cohere no
+responde, `404` si la ruta no existe.
 
 <details>
-<summary><b>Ver ejemplo de uso con curl</b></summary>
+<summary><b>Ver ejemplo de <code>/retrieve</code></b></summary>
+
+<br>
+
+`top_k` (1 a 10, por defecto 3) y `excluir_derogados` (por defecto `false`)
+son opcionales.
+
+```bash
+curl -X POST http://localhost:8000/retrieve   -H "Content-Type: application/json"   -d '{"pregunta": "que dice la ley sobre el periodo de prueba", "top_k": 3}'
+```
+
+**Respuesta** (texto recortado):
+
+```json
+{
+  "pregunta": "que dice la ley sobre el periodo de prueba",
+  "pertinente": true,
+  "motivo": "ok",
+  "similarity_score": 0.7111,
+  "umbral_similitud": 0.45,
+  "umbral_rerank": 0.3,
+  "fragmentos": [
+    { "articulo": "92 bis", "score": 0.7111, "score_rerank": 0.8451, "derogado": false, "texto": "Art. 92 bis. — Período de prueba. ..." },
+    { "articulo": "231",    "score": 0.5518, "score_rerank": 0.7817, "derogado": false, "texto": "Art. 231. —Plazos. ..." },
+    { "articulo": "50",     "score": 0.6281, "score_rerank": 0.5695, "derogado": false, "texto": "Art. 50. —Prueba. ..." }
+  ]
+}
+```
+
+`motivo` explica la decisión: `ok`, `sin_resultados`, `similitud_bajo_umbral`
+o `rerank_bajo_umbral`. Si no es pertinente, igual se devuelven los mejores
+candidatos, para poder ver por qué no alcanzaron.
+
+</details>
+
+<details>
+<summary><b>Ver ejemplo de <code>/ask</code></b></summary>
 
 <br>
 
 ```bash
-curl -X POST http://localhost:8000/consultar \
-  -H "Content-Type: application/json" \
-  -d '{"pregunta": "cuantos dias de vacaciones me corresponden con 8 años de antiguedad"}'
+curl -X POST http://localhost:8000/ask   -H "Content-Type: application/json"   -d '{"pregunta": "cuantos dias de vacaciones me corresponden con 8 años de antiguedad"}'
 ```
 
-**Respuesta:**
+**Respuesta** (se muestra solo la primera de las tres fuentes):
 
 ```json
 {
   "pregunta": "cuantos dias de vacaciones me corresponden con 8 años de antiguedad",
-  "respuesta": "Según el artículo 150 de la Ley 20.744, con una antigüedad de 8 años, te corresponden 21 días corridos de vacaciones...",
-  "articulos": [
-    {
-      "articulo": "150",
-      "titulo": "V - De las Vacaciones y otras Licencias",
-      "capitulo": "I - Régimen General",
-      "derogado": false,
-      "score": 0.6578,
-      "score_rerank": 0.8679
-    }
+  "respuesta": "Según el artículo 150, te corresponden 21 días corridos de vacaciones.
+
+Este artículo establece que los trabajadores con una antigüedad mayor a cinco años, pero que no supere los diez, tienen derecho a veintiún días corridos de descanso anual remunerado.",
+  "fuentes": [
+    { "articulo": "150", "titulo": "V - De las Vacaciones y otras Licencias", "capitulo": "I - Régimen General", "derogado": false, "score": 0.6578, "score_rerank": 0.8679 }
   ],
   "similarity_score": 0.6578,
   "grounded": true,
@@ -135,7 +168,7 @@ curl -X POST http://localhost:8000/consultar \
 
 `gui.py` es una pantalla simple hecha con [Streamlit](https://streamlit.io/)
 para consultar el asistente sin usar Swagger ni la terminal. **No es la API:
-es una pantalla aparte que le hace pedidos a `/consultar`.** Por eso hacen
+es una pantalla aparte que le hace pedidos a `/ask`.** Por eso hacen
 falta dos procesos corriendo al mismo tiempo (ver [Instalación](#-instalación)).
 
 Muestra la respuesta, los artículos citados —marcando en rojo si alguno está
@@ -176,8 +209,8 @@ licencias especiales, jornada laboral y despido.
 📁 proyecto/
 ├── 🌐 descargar_ley.py      Descarga y limpia el texto de la ley (se corre 1 vez)
 ├── 📥 ingesta.py            Parte por artículo, arma metadata, carga ChromaDB (se corre 1 vez)
-├── 🐍 main.py               Endpoint /consultar: guardrail, caché, orquesta la respuesta
-├── 🧠 rag.py                Búsqueda, reranking, generación
+├── 🐍 main.py               API: /health, /retrieve, /ask. Guardrail, caché, orquesta la respuesta
+├── 🧠 rag.py                Retrieval (búsqueda + filtros + reranking), prompt, generación
 ├── 📋 schemas.py            Contratos de entrada y salida (Pydantic)
 ├── 📄 ley/ley_20744.txt     El texto fuente, limpio (175.753 caracteres)
 └── 🔐 .env                  Clave de Cohere (no versionado)
@@ -187,7 +220,7 @@ licencias especiales, jornada laboral y despido.
 
 ```mermaid
 flowchart LR
-    A["/consultar"] --> B{"¿Lenguaje<br/>inapropiado?"}
+    A["/ask"] --> B{"¿Lenguaje<br/>inapropiado?"}
     B -->|Sí| C["🚫 Bloquear"]
     B -->|No| D{"¿En<br/>caché?"}
     D -->|Sí| E["⚡ Respuesta<br/>guardada"]

@@ -5,7 +5,7 @@ streamlit run gui.py
 
 python ingesta.py --verificar -- PARA CORRER LA INGESTA
 uvicorn main:app --reload
-http://localhost:8000/estado
+http://localhost:8000/health
 http://localhost:8000/docs
 streamlit run gui.py
 
