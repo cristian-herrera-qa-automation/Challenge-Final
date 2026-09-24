@@ -126,8 +126,10 @@ def evaluar(caso):
          "comportamiento_esperado": caso["comportamiento_esperado"]}
 
     # --- 1. Retrieval: solo embeddings vs. embeddings + reranking ---
-    solo_embeddings = [a["articulo"] for a in rag.buscar(pregunta)[:rag.TOP_K]]
-    resultado = rag.recuperar(pregunta)
+    # Una sola búsqueda: se usa para las dos variantes (ahorra llamadas)
+    candidatos = rag.buscar(pregunta)
+    solo_embeddings = [a["articulo"] for a in candidatos[:rag.TOP_K]]
+    resultado = rag.recuperar(pregunta, candidatos=candidatos)
     finales = [a["articulo"] for a in resultado["fragmentos"]]
 
     r["retrieval"] = {
@@ -238,7 +240,7 @@ def main():
     for caso in casos:
         print(f"[{caso['id']:2}/{len(casos)}] {caso['pregunta']}", flush=True)
         resultados.append(evaluar(caso))
-        time.sleep(3)  # la clave Trial de Cohere limita las llamadas por minuto
+        time.sleep(7)  # la clave Trial permite 10 reranks y 20 chats por minuto
 
     salida = {
         "fecha": datetime.now().isoformat(timespec="seconds"),

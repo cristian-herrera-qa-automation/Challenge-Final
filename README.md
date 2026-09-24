@@ -25,6 +25,7 @@ _Challenge Final — Get Talent (Pi Data)_
 - [Arquitectura](#-arquitectura)
 - [Base de conocimiento](#-base-de-conocimiento)
 - [Calidad de respuesta](#-calidad-de-respuesta)
+- [Evaluación](#-evaluación)
 - [IA Responsable](#-ia-responsable)
 - [Human in the Loop](#-human-in-the-loop)
 - [Verificación](#-verificación)
@@ -379,6 +380,47 @@ evitar: hay que detectarla.
   Si la detecta, reintenta una vez; si vuelve a fallar, responde `503` y **no
   guarda nada en el caché**. Es preferible un error honesto a una respuesta
   basura que además quedaría fija para siempre.
+
+---
+
+## 📊 Evaluación
+
+**Reporte completo:** [`docs/reporte_evaluacion.html`](docs/reporte_evaluacion.html)
+(también en Word: `docs/reporte_evaluacion.docx`).
+
+```bash
+python eval/evaluar.py     # ~57 llamadas a Cohere, unos 3 minutos
+```
+
+Dataset de 15 preguntas (`eval/dataset.json`): 5 respondibles, 5 que exigen
+un dato específico, 2 sin respuesta en la ley, 1 fuera de tema y 2 que deben
+ir a revisión humana. Cada una con el artículo y los datos esperados,
+verificados contra el texto de la ley.
+
+| Qué se midió                                       | Solo embeddings | Con reranking |
+| -------------------------------------------------- | :-------------: | :-----------: |
+| Hit rate@3 (artículo correcto en el top 3)         |      0.909      |   **1.000**   |
+| MRR                                                |      0.909      |   **0.939**   |
+
+| Qué se midió                                              | Resultado            |
+| --------------------------------------------------------- | -------------------- |
+| Comportamiento esperado (responder / negarse / HITL)      | **15 de 15**         |
+| Dato clave y artículo citado (chequeo automático)         | 11 de 11             |
+| LLM-as-a-Judge: correcta / relevante / fundamentada (1-5) | 4.83 / 4.75 / 4.92   |
+| Revisión manual: sin frases fuera del contexto            | **8 de 12**          |
+
+**Lo que se aprendió:**
+
+- **El reranker suma:** rescató el art. 189 en "¿a partir de qué edad se
+  puede trabajar?", que solo con embeddings no entraba en el top 3.
+- **Negarse bien depende del prompt:** en salario mínimo y licencia por
+  mudanza los scores pasan los dos filtros; lo que evita inventar es la regla
+  del prompt.
+- **El modelo agrega frases que no están en el contexto** (3 de 10 respuestas),
+  correctas en lo principal pero con datos sacados de su propio conocimiento.
+- **El juez no lo detecta:** con el mismo modelo como juez, "fundamentada" dio
+  4.92 y la revisión manual 8 de 12. Tampoco detectó el artículo mal citado en
+  el caso de los tickets. Por eso la revisión del HITL la hace una persona.
 
 ---
 

@@ -210,7 +210,7 @@ def reordenar(consulta, articulos, top_n=TOP_K):
 # 3 bis. Retrieval completo (búsqueda + filtros + reranking)
 # ---------------------------------------------------------------------------
 
-def recuperar(consulta, top_k=TOP_K, excluir_derogados=False, traza="-"):
+def recuperar(consulta, top_k=TOP_K, excluir_derogados=False, traza="-", candidatos=None):
     """
     Ejecuta todo el retrieval SIN llamar al modelo generativo.
 
@@ -223,8 +223,12 @@ def recuperar(consulta, top_k=TOP_K, excluir_derogados=False, traza="-"):
       - fragmentos:  si es pertinente, los que pasaron los dos filtros;
                      si no, los mejores candidatos, para poder ver por qué
       - similarity_score: el mejor score de similitud
+
+    candidatos permite pasar una búsqueda ya hecha (lo usa la evaluación,
+    para no pagar dos veces el mismo embedding).
     """
-    candidatos = buscar(consulta, excluir_derogados=excluir_derogados)
+    if candidatos is None:
+        candidatos = buscar(consulta, excluir_derogados=excluir_derogados)
 
     if not candidatos:
         logger.info("PASO 3 BUSQUEDA | traza=%s | sin resultados", traza)

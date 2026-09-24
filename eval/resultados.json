@@ -1,0 +1,761 @@
+{
+  "fecha": "2026-09-24T12:01:49",
+  "configuracion": {
+    "modelo_embeddings": "embed-multilingual-v3.0",
+    "modelo_chat": "command-a-03-2025",
+    "modelo_rerank": "rerank-v4.0-fast",
+    "modelo_juez": "command-a-03-2025",
+    "top_k": 3,
+    "candidatos": 10,
+    "umbral_similitud": 0.45,
+    "umbral_rerank": 0.3,
+    "umbral_confianza_hitl": 0.5
+  },
+  "resumen": {
+    "preguntas": 15,
+    "retrieval": {
+      "solo_embeddings": {
+        "preguntas_evaluadas": 11,
+        "hit_rate@3": 0.909,
+        "recall@3": 0.909,
+        "mrr": 0.909
+      },
+      "con_rerank": {
+        "preguntas_evaluadas": 11,
+        "hit_rate@3": 1.0,
+        "recall@3": 1.0,
+        "mrr": 0.939
+      }
+    },
+    "comportamiento_correcto": "15/15",
+    "juez": {
+      "respuestas_juzgadas": 12,
+      "correcta": 4.833,
+      "relevante": 4.75,
+      "fundamentada": 4.917
+    },
+    "datos_clave_presentes": 1.0,
+    "cita_articulo_esperado": 1.0
+  },
+  "resultados": [
+    {
+      "id": 1,
+      "categoria": "respondible",
+      "pregunta": "¿Cuántos días de vacaciones me corresponden con 8 años de antigüedad?",
+      "articulos_esperados": [
+        "150"
+      ],
+      "comportamiento_esperado": "responder",
+      "retrieval": {
+        "solo_embeddings": [
+          "150",
+          "18",
+          "194"
+        ],
+        "con_rerank": [
+          "150",
+          "153",
+          "155"
+        ],
+        "similarity_score": 0.6695,
+        "scores_rerank": [
+          0.8974,
+          0.7338,
+          0.6754
+        ],
+        "derogados": [],
+        "motivo": "ok",
+        "metricas_solo_embeddings": {
+          "hit": true,
+          "recall": 1.0,
+          "rr": 1.0
+        },
+        "metricas_con_rerank": {
+          "hit": true,
+          "recall": 1.0,
+          "rr": 1.0
+        }
+      },
+      "respuesta": "Según el artículo 150, con 8 años de antigüedad te corresponden 21 días corridos de vacaciones.\n\nEl artículo establece que para antigüedad mayor a 5 años pero menor o igual a 10 años, el período de descanso anual es de 21 días corridos.",
+      "motivos_revision": [],
+      "comportamiento": "responder",
+      "datos_clave": [
+        true
+      ],
+      "cita_articulo_esperado": true,
+      "juez": {
+        "correcta": 5,
+        "relevante": 5,
+        "fundamentada": 5,
+        "comentario": "La respuesta es correcta, relevante y fundamentada en el artículo 150 de la Ley 20.744."
+      },
+      "comportamiento_ok": true
+    },
+    {
+      "id": 2,
+      "categoria": "respondible",
+      "pregunta": "¿Cuánto dura el período de prueba?",
+      "articulos_esperados": [
+        "92 bis"
+      ],
+      "comportamiento_esperado": "responder",
+      "retrieval": {
+        "solo_embeddings": [
+          "92 bis",
+          "92",
+          "93"
+        ],
+        "con_rerank": [
+          "92 bis",
+          "150",
+          "214"
+        ],
+        "similarity_score": 0.7003,
+        "scores_rerank": [
+          0.8447,
+          0.5308,
+          0.5269
+        ],
+        "derogados": [],
+        "motivo": "ok",
+        "metricas_solo_embeddings": {
+          "hit": true,
+          "recall": 1.0,
+          "rr": 1.0
+        },
+        "metricas_con_rerank": {
+          "hit": true,
+          "recall": 1.0,
+          "rr": 1.0
+        }
+      },
+      "respuesta": "Según el artículo 92 bis, el período de prueba en un contrato de trabajo por tiempo indeterminado es de seis meses.\n\nLas convenciones colectivas de trabajo pueden ampliar este período a ocho meses en empresas de 6 a 100 trabajadores, y a un año en empresas de hasta 5 trabajadores. Durante este lapso, cualquiera de las partes puede extinguir la relación sin expresión de causa ni derecho a indemnización.",
+      "motivos_revision": [],
+      "comportamiento": "responder",
+      "datos_clave": [
+        true
+      ],
+      "cita_articulo_esperado": true,
+      "juez": {
+        "correcta": 5,
+        "relevante": 5,
+        "fundamentada": 5,
+        "comentario": "La respuesta es correcta, relevante y fundamentada en el artículo 92 bis."
+      },
+      "comportamiento_ok": true
+    },
+    {
+      "id": 3,
+      "categoria": "respondible",
+      "pregunta": "¿Cuánto se paga la hora extra?",
+      "articulos_esperados": [
+        "201"
+      ],
+      "comportamiento_esperado": "responder",
+      "retrieval": {
+        "solo_embeddings": [
+          "201",
+          "197 bis",
+          "203"
+        ],
+        "con_rerank": [
+          "201",
+          "200",
+          "197 bis"
+        ],
+        "similarity_score": 0.6954,
+        "scores_rerank": [
+          0.8417,
+          0.6989,
+          0.6771
+        ],
+        "derogados": [],
+        "motivo": "ok",
+        "metricas_solo_embeddings": {
+          "hit": true,
+          "recall": 1.0,
+          "rr": 1.0
+        },
+        "metricas_con_rerank": {
+          "hit": true,
+          "recall": 1.0,
+          "rr": 1.0
+        }
+      },
+      "respuesta": "Según el artículo 201, el empleador debe abonar un recargo del 50% sobre el salario habitual por horas suplementarias en días comunes, y del 100% en días sábado después de las 13 horas, domingos y feriados.\n\nEl artículo 201 establece que el recargo por horas extras se calcula sobre el salario habitual del trabajador. No se especifica un monto fijo, sino un porcentaje adicional que se aplica al salario del trabajador.",
+      "motivos_revision": [],
+      "comportamiento": "responder",
+      "datos_clave": [
+        true,
+        true
+      ],
+      "cita_articulo_esperado": true,
+      "juez": {
+        "correcta": 5,
+        "relevante": 5,
+        "fundamentada": 5,
+        "comentario": "La respuesta es correcta, relevante y fundamentada en el artículo 201 de la Ley 20.744."
+      },
+      "comportamiento_ok": true
+    },
+    {
+      "id": 4,
+      "categoria": "respondible",
+      "pregunta": "¿Cuántos días de licencia me dan por casamiento?",
+      "articulos_esperados": [
+        "158"
+      ],
+      "comportamiento_esperado": "responder",
+      "retrieval": {
+        "solo_embeddings": [
+          "158",
+          "237",
+          "151"
+        ],
+        "con_rerank": [
+          "158",
+          "194",
+          "150"
+        ],
+        "similarity_score": 0.6854,
+        "scores_rerank": [
+          0.8351,
+          0.6703,
+          0.5502
+        ],
+        "derogados": [],
+        "motivo": "ok",
+        "metricas_solo_embeddings": {
+          "hit": true,
+          "recall": 1.0,
+          "rr": 1.0
+        },
+        "metricas_con_rerank": {
+          "hit": true,
+          "recall": 1.0,
+          "rr": 1.0
+        }
+      },
+      "respuesta": "Según el artículo 158, inciso b), tenés diez días corridos de licencia por matrimonio.\n\nEste período es parte de las licencias especiales que establece la ley, y no se descuenta de las vacaciones anuales.",
+      "motivos_revision": [],
+      "comportamiento": "responder",
+      "datos_clave": [
+        true
+      ],
+      "cita_articulo_esperado": true,
+      "juez": {
+        "correcta": 5,
+        "relevante": 5,
+        "fundamentada": 5,
+        "comentario": "La respuesta es correcta, relevante y fundamentada en el artículo 158, inciso b) de la Ley 20.744."
+      },
+      "comportamiento_ok": true
+    },
+    {
+      "id": 5,
+      "categoria": "respondible",
+      "pregunta": "¿Cuándo se paga el aguinaldo?",
+      "articulos_esperados": [
+        "122"
+      ],
+      "comportamiento_esperado": "responder",
+      "retrieval": {
+        "solo_embeddings": [
+          "122",
+          "128",
+          "129"
+        ],
+        "con_rerank": [
+          "122",
+          "130",
+          "126"
+        ],
+        "similarity_score": 0.6403,
+        "scores_rerank": [
+          0.5347,
+          0.4762,
+          0.4684
+        ],
+        "derogados": [],
+        "motivo": "ok",
+        "metricas_solo_embeddings": {
+          "hit": true,
+          "recall": 1.0,
+          "rr": 1.0
+        },
+        "metricas_con_rerank": {
+          "hit": true,
+          "recall": 1.0,
+          "rr": 1.0
+        }
+      },
+      "respuesta": "El aguinaldo, o sueldo anual complementario, se abona en dos cuotas: la primera el 30 de junio y la segunda el 18 de diciembre de cada año, según el artículo 122.\n\nEl importe de cada cuota se calcula sobre el 50% de la mayor remuneración mensual devengada por todo concepto dentro de los dos semestres que culminan en junio y diciembre. Para la segunda cuota, el empleador debe estimar el salario de diciembre y, si hay diferencias, se procede a un recalculo y se integra la diferencia al salario de diciembre.",
+      "motivos_revision": [],
+      "comportamiento": "responder",
+      "datos_clave": [
+        true,
+        true
+      ],
+      "cita_articulo_esperado": true,
+      "juez": {
+        "correcta": 5,
+        "relevante": 5,
+        "fundamentada": 5,
+        "comentario": "La respuesta es precisa, relevante y está completamente fundamentada en el contexto proporcionado."
+      },
+      "comportamiento_ok": true
+    },
+    {
+      "id": 6,
+      "categoria": "especifica",
+      "pregunta": "Si tengo 3 años de antigüedad, ¿con cuánta anticipación me tiene que avisar el empleador antes de despedirme?",
+      "articulos_esperados": [
+        "231"
+      ],
+      "comportamiento_esperado": "responder",
+      "retrieval": {
+        "solo_embeddings": [
+          "231",
+          "245",
+          "236"
+        ],
+        "con_rerank": [
+          "231",
+          "245",
+          "181"
+        ],
+        "similarity_score": 0.696,
+        "scores_rerank": [
+          0.8933,
+          0.822,
+          0.7702
+        ],
+        "derogados": [],
+        "motivo": "ok",
+        "metricas_solo_embeddings": {
+          "hit": true,
+          "recall": 1.0,
+          "rr": 1.0
+        },
+        "metricas_con_rerank": {
+          "hit": true,
+          "recall": 1.0,
+          "rr": 1.0
+        }
+      },
+      "respuesta": "Según el artículo 231, el empleador debe dar un preaviso de un mes si el trabajador tiene una antigüedad en el empleo que no exceda de cinco años.\n\nEste plazo es para que el trabajador pueda buscar otro empleo y no quede desprotegido. Si el empleador no da el preaviso, debe pagar una indemnización equivalente a un mes de sueldo, según el artículo 231.",
+      "motivos_revision": [],
+      "comportamiento": "responder",
+      "datos_clave": [
+        true
+      ],
+      "cita_articulo_esperado": true,
+      "juez": {
+        "correcta": 5,
+        "relevante": 4,
+        "fundamentada": 5,
+        "comentario": "La respuesta es relevante pero no menciona explícitamente que el plazo de un mes se aplica a una antigüedad de hasta 5 años, lo cual es crucial para la pregunta específica."
+      },
+      "comportamiento_ok": true
+    },
+    {
+      "id": 7,
+      "categoria": "especifica",
+      "pregunta": "¿Cuántos días de licencia corresponden por el fallecimiento de un hermano?",
+      "articulos_esperados": [
+        "158"
+      ],
+      "comportamiento_esperado": "responder",
+      "retrieval": {
+        "solo_embeddings": [
+          "158",
+          "153",
+          "151"
+        ],
+        "con_rerank": [
+          "158",
+          "150",
+          "194"
+        ],
+        "similarity_score": 0.6856,
+        "scores_rerank": [
+          0.8882,
+          0.4996,
+          0.4996
+        ],
+        "derogados": [],
+        "motivo": "ok",
+        "metricas_solo_embeddings": {
+          "hit": true,
+          "recall": 1.0,
+          "rr": 1.0
+        },
+        "metricas_con_rerank": {
+          "hit": true,
+          "recall": 1.0,
+          "rr": 1.0
+        }
+      },
+      "respuesta": "Según el artículo 158, inciso d), corresponden un (1) día de licencia por el fallecimiento de un hermano.\n\nEsta licencia es una de las licencias especiales que establece la ley, y se otorga al trabajador para que pueda ausentarse de su trabajo sin perder su remuneración.",
+      "motivos_revision": [],
+      "comportamiento": "responder",
+      "datos_clave": [
+        true
+      ],
+      "cita_articulo_esperado": true,
+      "juez": {
+        "correcta": 5,
+        "relevante": 5,
+        "fundamentada": 5,
+        "comentario": "La respuesta es correcta, relevante y fundamentada en el artículo 158, inciso d) de la Ley 20.744."
+      },
+      "comportamiento_ok": true
+    },
+    {
+      "id": 8,
+      "categoria": "especifica",
+      "pregunta": "¿Cuántas horas puede durar como máximo una jornada íntegramente nocturna?",
+      "articulos_esperados": [
+        "200"
+      ],
+      "comportamiento_esperado": "responder",
+      "retrieval": {
+        "solo_embeddings": [
+          "200",
+          "190",
+          "198"
+        ],
+        "con_rerank": [
+          "200",
+          "190",
+          "197"
+        ],
+        "similarity_score": 0.7407,
+        "scores_rerank": [
+          0.9218,
+          0.8552,
+          0.611
+        ],
+        "derogados": [],
+        "motivo": "ok",
+        "metricas_solo_embeddings": {
+          "hit": true,
+          "recall": 1.0,
+          "rr": 1.0
+        },
+        "metricas_con_rerank": {
+          "hit": true,
+          "recall": 1.0,
+          "rr": 1.0
+        }
+      },
+      "respuesta": "Según el artículo 200, la jornada de trabajo íntegramente nocturna no podrá exceder de siete (7) horas.\n\nSe considera trabajo nocturno el realizado entre las 21 horas de un día y las 6 horas del día siguiente. Esta limitación no aplica cuando se implementan horarios rotativos en el régimen de trabajo por equipos.",
+      "motivos_revision": [],
+      "comportamiento": "responder",
+      "datos_clave": [
+        true
+      ],
+      "cita_articulo_esperado": true,
+      "juez": {
+        "correcta": 5,
+        "relevante": 5,
+        "fundamentada": 5,
+        "comentario": "La respuesta es correcta, relevante y fundamentada en el artículo 200 de la Ley 20.744."
+      },
+      "comportamiento_ok": true
+    },
+    {
+      "id": 9,
+      "categoria": "especifica",
+      "pregunta": "¿A partir de qué edad se puede trabajar?",
+      "articulos_esperados": [
+        "189"
+      ],
+      "comportamiento_esperado": "responder",
+      "retrieval": {
+        "solo_embeddings": [
+          "32",
+          "190",
+          "187"
+        ],
+        "con_rerank": [
+          "32",
+          "187",
+          "189"
+        ],
+        "similarity_score": 0.7081,
+        "scores_rerank": [
+          0.8897,
+          0.8702,
+          0.8596
+        ],
+        "derogados": [],
+        "motivo": "ok",
+        "metricas_solo_embeddings": {
+          "hit": false,
+          "recall": 0.0,
+          "rr": 0.0
+        },
+        "metricas_con_rerank": {
+          "hit": true,
+          "recall": 1.0,
+          "rr": 0.333
+        }
+      },
+      "respuesta": "Según el artículo 189, está prohibido ocupar a menores de 16 años en cualquier tipo de actividad laboral.\n\nSin embargo, el artículo 189 bis establece una excepción para empresas familiares, permitiendo que menores de 16 años y mayores de 14 trabajen en empresas de sus padres, madres o tutores, con jornadas limitadas a 3 horas diarias y 15 horas semanales, siempre que no se trate de tareas penosas, peligrosas o insalubres, y que cumplan con la asistencia escolar.",
+      "motivos_revision": [],
+      "comportamiento": "responder",
+      "datos_clave": [
+        true
+      ],
+      "cita_articulo_esperado": true,
+      "juez": {
+        "correcta": 4,
+        "relevante": 3,
+        "fundamentada": 5,
+        "comentario": "La respuesta es parcialmente relevante porque, aunque menciona la edad mínima de 16 años, no destaca claramente que esa es la edad a partir de la cual se puede trabajar en general, y se extiende en detalles sobre la excepción familiar que no son solicitados en la pregunta."
+      },
+      "comportamiento_ok": true
+    },
+    {
+      "id": 10,
+      "categoria": "especifica",
+      "pregunta": "¿Durante cuánto tiempo se presume que un despido es por causa del embarazo?",
+      "articulos_esperados": [
+        "178"
+      ],
+      "comportamiento_esperado": "responder",
+      "retrieval": {
+        "solo_embeddings": [
+          "178",
+          "181",
+          "177"
+        ],
+        "con_rerank": [
+          "178",
+          "181",
+          "177"
+        ],
+        "similarity_score": 0.7971,
+        "scores_rerank": [
+          0.9435,
+          0.9,
+          0.7824
+        ],
+        "derogados": [],
+        "motivo": "ok",
+        "metricas_solo_embeddings": {
+          "hit": true,
+          "recall": 1.0,
+          "rr": 1.0
+        },
+        "metricas_con_rerank": {
+          "hit": true,
+          "recall": 1.0,
+          "rr": 1.0
+        }
+      },
+      "respuesta": "Según el artículo 178, se presume que el despido de una mujer trabajadora obedece a razones de maternidad o embarazo cuando se produce dentro de los siete meses y medio anteriores o posteriores a la fecha del parto.\n\nEsta presunción aplica siempre que la trabajadora haya cumplido con su obligación de notificar y acreditar el embarazo y, en su caso, el nacimiento.",
+      "motivos_revision": [],
+      "comportamiento": "responder",
+      "datos_clave": [
+        true
+      ],
+      "cita_articulo_esperado": true,
+      "juez": {
+        "correcta": 5,
+        "relevante": 5,
+        "fundamentada": 5,
+        "comentario": "La respuesta es correcta, relevante y fundamentada en el artículo 178 de la Ley 20.744."
+      },
+      "comportamiento_ok": true
+    },
+    {
+      "id": 11,
+      "categoria": "sin_respuesta",
+      "pregunta": "¿Cuál es el monto actual del salario mínimo vital y móvil?",
+      "articulos_esperados": [],
+      "comportamiento_esperado": "no_responder",
+      "retrieval": {
+        "solo_embeddings": [
+          "116",
+          "120",
+          "118"
+        ],
+        "con_rerank": [
+          "116",
+          "118",
+          "112"
+        ],
+        "similarity_score": 0.691,
+        "scores_rerank": [
+          0.6439,
+          0.633,
+          0.5405
+        ],
+        "derogados": [],
+        "motivo": "ok"
+      },
+      "respuesta": "No cuento con información suficiente en la Ley de Contrato de Trabajo para responder a esta consulta.",
+      "motivos_revision": [],
+      "comportamiento": "no_responder",
+      "comportamiento_ok": true
+    },
+    {
+      "id": 12,
+      "categoria": "sin_respuesta",
+      "pregunta": "¿Cuántos días de licencia me corresponden por mudanza?",
+      "articulos_esperados": [],
+      "comportamiento_esperado": "no_responder",
+      "retrieval": {
+        "solo_embeddings": [
+          "158",
+          "237",
+          "194"
+        ],
+        "con_rerank": [
+          "237",
+          "150",
+          "153"
+        ],
+        "similarity_score": 0.6207,
+        "scores_rerank": [
+          0.611,
+          0.6036,
+          0.6017
+        ],
+        "derogados": [],
+        "motivo": "ok"
+      },
+      "respuesta": "No cuento con información suficiente en la Ley de Contrato de Trabajo para responder a esta consulta.",
+      "motivos_revision": [],
+      "comportamiento": "no_responder",
+      "comportamiento_ok": true
+    },
+    {
+      "id": 13,
+      "categoria": "fuera_de_tema",
+      "pregunta": "¿Cuál es la capital de Francia?",
+      "articulos_esperados": [],
+      "comportamiento_esperado": "fuera_de_tema",
+      "retrieval": {
+        "solo_embeddings": [
+          "132",
+          "162",
+          "49"
+        ],
+        "con_rerank": [],
+        "similarity_score": 0.3482,
+        "scores_rerank": [
+          null,
+          null,
+          null
+        ],
+        "derogados": [],
+        "motivo": "similitud_bajo_umbral"
+      },
+      "respuesta": null,
+      "comportamiento": "fuera_de_tema",
+      "comportamiento_ok": true
+    },
+    {
+      "id": 14,
+      "categoria": "hitl",
+      "pregunta": "¿Qué dice la ley del trabajo nocturno?",
+      "articulos_esperados": [
+        "200",
+        "190"
+      ],
+      "comportamiento_esperado": "revision",
+      "retrieval": {
+        "solo_embeddings": [
+          "200",
+          "190",
+          "173"
+        ],
+        "con_rerank": [
+          "190",
+          "200",
+          "173"
+        ],
+        "similarity_score": 0.714,
+        "scores_rerank": [
+          0.8433,
+          0.8259,
+          0.6989
+        ],
+        "derogados": [
+          "173"
+        ],
+        "motivo": "ok",
+        "metricas_solo_embeddings": {
+          "hit": true,
+          "recall": 1.0,
+          "rr": 1.0
+        },
+        "metricas_con_rerank": {
+          "hit": true,
+          "recall": 1.0,
+          "rr": 1.0
+        }
+      },
+      "respuesta": "Según el artículo 190, el trabajo nocturno para menores de 18 años está prohibido entre las 20 y las 6 horas del día siguiente. En el caso de establecimientos fabriles con tres turnos diarios, la prohibición se extiende de 22 a 6 horas, pero solo para menores de más de 16 años.\n\nEl artículo 200 define la jornada de trabajo íntegramente nocturna como aquella que se cumple entre las 21 y las 6 horas del día siguiente, y establece que no podrá exceder las 7 horas. Si se alternan horas diurnas con nocturnas, se reducirá la jornada en 8 minutos por cada hora nocturna trabajada o se pagarán esos minutos como tiempo suplementario.",
+      "motivos_revision": [
+        "cita_articulo_derogado"
+      ],
+      "comportamiento": "revision",
+      "datos_clave": [
+        true
+      ],
+      "cita_articulo_esperado": true,
+      "juez": {
+        "correcta": 4,
+        "relevante": 5,
+        "fundamentada": 4,
+        "comentario": "La respuesta es correcta y relevante, pero no menciona el horario de inicio del trabajo nocturno para adultos (21 horas), que es un dato esperado."
+      },
+      "comportamiento_ok": true
+    },
+    {
+      "id": 15,
+      "categoria": "hitl",
+      "pregunta": "¿Me pueden pagar con tickets de comida?",
+      "articulos_esperados": [],
+      "comportamiento_esperado": "revision",
+      "retrieval": {
+        "solo_embeddings": [
+          "138",
+          "106",
+          "129"
+        ],
+        "con_rerank": [
+          "131",
+          "106",
+          "105"
+        ],
+        "similarity_score": 0.5106,
+        "scores_rerank": [
+          0.4938,
+          0.4587,
+          0.3901
+        ],
+        "derogados": [],
+        "motivo": "ok"
+      },
+      "respuesta": "Según el artículo 131, no se puede deducir, retener o compensar suma alguna que rebaje el monto de las remuneraciones. Esto incluye la prohibición de pagos en especie, como tickets de comida.\n\nLa ley establece que las remuneraciones deben ser pagadas en dinero, sin posibilidad de reemplazarlas con mercaderías, alimentos, vivienda o cualquier otra prestación en especie.",
+      "motivos_revision": [
+        "confianza_baja"
+      ],
+      "comportamiento": "revision",
+      "datos_clave": [],
+      "cita_articulo_esperado": null,
+      "juez": {
+        "correcta": 5,
+        "relevante": 5,
+        "fundamentada": 5,
+        "comentario": "La respuesta es correcta, relevante y fundamentada en el artículo 131 de la Ley 20.744."
+      },
+      "comportamiento_ok": true
+    }
+  ]
+}
