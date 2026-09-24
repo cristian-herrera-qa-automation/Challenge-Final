@@ -1,0 +1,32 @@
+# Claves y secretos - NUNCA subir
+.env
+
+# Base vectorial: son 317 embeddings binarios.
+# Se regenera con: python ingesta.py
+chroma_data/
+
+# Cache de respuestas (se regenera solo con el uso)
+cache_respuestas.json
+
+# HTML crudo de la descarga (solo sirve para depurar)
+ley/ley_20744_crudo.html
+
+# Entorno virtual
+venv/
+.venv/
+env/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# Editores
+.vscode/
+.idea/
+
+# Sistema operativo
+Thumbs.db
+desktop.ini
+.DS_Store

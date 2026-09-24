@@ -1,0 +1,19 @@
+{"pregunta": "cuantos dias de vacaciones me corresponden con 8 años de antiguedad"}
+
+{"pregunta": "que dice la ley sobre el periodo de prueba"},
+
+{"pregunta": "como se hace una tarta de manzana"},
+
+{"pregunta": "cual es la capital de francia"}
+
+1. ¿Cuántos días de vacaciones me corresponden según mi antigüedad?
+2. ¿Qué es el período de prueba y cuánto dura?
+3. ¿Cuánto tiempo de preaviso debe dar el empleador antes de un despido?
+4. ¿Qué es el sueldo anual complementario y cuándo se paga?
+5. ¿Qué licencia especial otorga la ley por nacimiento de un hijo?
+6. ¿Cuántos días de licencia corresponden por matrimonio?
+7. ¿Qué días de licencia se otorgan por fallecimiento de un familiar directo?
+8. ¿Qué dice la ley sobre la jornada de trabajo y el descanso semanal?
+9. ¿Qué indemnización corresponde si me despiden sin causa justificada?
+10. ¿Qué licencia paga corresponde por enfermedad o accidente que no sea
+    laboral?
