@@ -117,7 +117,9 @@ revisión ya resuelta.
 son opcionales.
 
 ```bash
-curl -X POST http://localhost:8000/retrieve   -H "Content-Type: application/json"   -d '{"pregunta": "que dice la ley sobre el periodo de prueba", "top_k": 3}'
+curl -X POST http://localhost:8000/retrieve \
+  -H "Content-Type: application/json" \
+  -d '{"pregunta": "que dice la ley sobre el periodo de prueba", "top_k": 3}'
 ```
 
 **Respuesta** (texto recortado):
@@ -150,7 +152,9 @@ candidatos, para poder ver por qué no alcanzaron.
 <br>
 
 ```bash
-curl -X POST http://localhost:8000/ask   -H "Content-Type: application/json"   -d '{"pregunta": "cuantos dias de vacaciones me corresponden con 8 años de antiguedad"}'
+curl -X POST http://localhost:8000/ask \
+  -H "Content-Type: application/json" \
+  -d '{"pregunta": "cuantos dias de vacaciones me corresponden con 8 años de antiguedad"}'
 ```
 
 **Respuesta** (se muestra solo la primera de las tres fuentes):
@@ -158,9 +162,10 @@ curl -X POST http://localhost:8000/ask   -H "Content-Type: application/json"   -
 ```json
 {
   "pregunta": "cuantos dias de vacaciones me corresponden con 8 años de antiguedad",
-  "respuesta": "Según el artículo 150, te corresponden 21 días corridos de vacaciones.
-
-Este artículo establece que los trabajadores con una antigüedad mayor a cinco años, pero que no supere los diez, tienen derecho a veintiún días corridos de descanso anual remunerado.",
+  "estado": "respondida",
+  "id_revision": null,
+  "motivos_revision": [],
+  "respuesta": "Según el artículo 150, te corresponden 21 días corridos de vacaciones.\n\nEste artículo establece que los trabajadores con una antigüedad mayor a cinco años, pero que no supere los diez, tienen derecho a veintiún días corridos de descanso anual remunerado.",
   "fuentes": [
     { "articulo": "150", "titulo": "V - De las Vacaciones y otras Licencias", "capitulo": "I - Régimen General", "derogado": false, "score": 0.6578, "score_rerank": 0.8679 }
   ],
