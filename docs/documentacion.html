@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Documentación del proyecto</title>
+<style>
+  :root {
+    --fondo: #000000;
+    --panel: #121217;
+    --borde: #26262e;
+    --texto: #d6d6de;
+    --suave: #8b8b98;
+    --blanco: #ffffff;
+    --celeste: #5eead4;
+    --ambar: #fbbf24;
+    --verde: #4ade80;
+    --rojo: #f87171;
+    --violeta: #a78bfa;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--fondo); color: var(--texto);
+    font-family: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+    font-size: 16px; line-height: 1.65;
+  }
+  main { max-width: 920px; margin: 0 auto; padding: 48px 16px 80px; }
+  h1 {
+    font-size: 2.4rem; line-height: 1.15; margin: 0 0 6px; color: var(--blanco);
+    background: linear-gradient(90deg, var(--celeste), var(--violeta));
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .sub { font-size: 1.15rem; color: var(--blanco); margin: 0 0 4px; }
+  .meta { color: var(--suave); margin: 0 0 40px; font-size: .95rem; }
+  h2 {
+    color: var(--celeste); font-size: 1.5rem; margin: 48px 0 12px;
+    padding-bottom: 8px; border-bottom: 1px solid var(--borde);
+  }
+  h3 { color: var(--ambar); font-size: 1.15rem; margin: 28px 0 8px; }
+  p { margin: 0 0 14px; }
+  strong { color: var(--blanco); }
+  code {
+    font-family: Consolas, "Cascadia Code", monospace; font-size: .88em;
+    background: var(--panel); border: 1px solid var(--borde); color: var(--violeta);
+    padding: 1px 6px; border-radius: 4px;
+  }
+  ul { margin: 0 0 16px; padding-left: 22px; }
+  li { margin-bottom: 8px; }
+  li::marker { color: var(--celeste); }
+  .tabla { overflow-x: auto; margin: 8px 0 20px; border: 1px solid var(--borde); border-radius: 8px; }
+  table { border-collapse: collapse; width: 100%; font-size: .95rem; }
+  table.chica { font-size: .85rem; }
+  th {
+    text-align: left; background: var(--panel); color: var(--celeste);
+    font-weight: 600; padding: 10px 12px; border-bottom: 1px solid var(--borde); white-space: nowrap;
+  }
+  td { padding: 9px 12px; border-bottom: 1px solid var(--borde); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  tbody tr:nth-child(even) td { background: #0a0a0e; }
+  td.ok { color: var(--verde); }
+  td.mal { color: var(--rojo); }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin: 8px 0 24px; }
+  .card { background: var(--panel); border: 1px solid var(--borde); border-top: 3px solid; border-radius: 8px; padding: 14px 16px; }
+  .card .valor { font-size: 1.9rem; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .card .etiqueta { color: var(--suave); font-size: .85rem; margin-top: 6px; line-height: 1.35; }
+  .card.verde { border-top-color: var(--verde); } .card.verde .valor { color: var(--verde); }
+  .card.celeste { border-top-color: var(--celeste); } .card.celeste .valor { color: var(--celeste); }
+  .card.ambar { border-top-color: var(--ambar); } .card.ambar .valor { color: var(--ambar); }
+  .card.rojo { border-top-color: var(--rojo); } .card.rojo .valor { color: var(--rojo); }
+  .callout {
+    background: #1a1408; border: 1px solid #4a3a12; border-left: 4px solid var(--ambar);
+    border-radius: 8px; padding: 14px 18px; margin: 28px 0 12px;
+  }
+  .callout h3 { margin: 0 0 6px; }
+  .callout p { margin: 0; }
+  @media (max-width: 600px) {
+    main { padding-top: 28px; }
+    h1 { font-size: 1.9rem; }
+    h2 { font-size: 1.3rem; }
+  }
+  hr { border: none; border-top: 1px solid var(--borde); margin: 40px 0; }
+  a { color: var(--celeste); }
+  h2 + p, h3 + p { margin-top: 0; }
+  ol li { margin-bottom: 4px; }
+</style>
+
+</head>
+<body>
+<main>
+<h1>Asistente Conversacional sobre la Ley de Contrato de Trabajo N° 20.744</h1>
+<p class="sub">Challenge Final — Get Talent</p>
+<p class="meta">Alumno: Cristian Herrera</p>
+<p>Este documento cuenta como armé el proyecto: qué decisiones técnicas tomé y
+por qué, cómo evalué el sistema y que lo aprendí en el camino. Como instalarlo
+y usarlo está en el <a href="../README.md">README</a>.</p>
+<h2 id="contenido">Contenido</h2>
+<ol>
+<li><a href="#1-por-qué-elegí-este-tema">Por qué elegí este tema</a></li>
+<li><a href="#2-decisiones-técnicas">Decisiones técnicas</a></li>
+<li><a href="#3-evaluación">Evaluación</a></li>
+<li><a href="#4-qué-haría-para-mejorar">Qué haría para mejorar</a></li>
+<li><a href="#5-conclusiones">Conclusiones</a></li>
+<li><a href="#6-cómo-trabajé">Cómo trabajé</a></li>
+<li><a href="#7-qué-me-falta-entender-mejor">Qué me falta entender mejor</a></li>
+</ol>
+<hr />
+<h2 id="1-por-qué-elegí-este-tema">1. Por qué elegí este tema</h2>
+<p>Cuando tuve que elegir un tema para el
+proyecto final, pensé en varios temas pero el otro dia se me aparecio un blog sobre la Ley del Contrato de Trabajo entonces la elegí y me gusto porque es un texto largo, con
+estructura clara (artículos numerados, agrupados en títulos y capítulos), y
+porque además fue reformada hace muy poco (Ley 27.802, marzo de 2026), así
+que el Asistente Conversacional va a estar respondiendo sobre algo vigente y actual, no un
+texto viejo que ya todo el mundo uso.</p>
+<p>También elegí este tema porque me permitía usar la metadata de la base de datos
+vectorial de una forma que tuviera sentido real: cada artículo con su
+título, su capítulo y si está derogado, no como un campo decorativo sino
+como algo que efectivamente cambia la respuesta.</p>
+<hr />
+<h2 id="2-decisiones-técnicas">2. Decisiones técnicas</h2>
+<h3 id="21-descargar-y-limpiar-el-texto">2.1 Descargar y limpiar el texto</h3>
+<p>Esta fue la parte que más tiempo me llevó, y donde más aprendí sobre lo
+que significa realmente "preparar datos" para un sistema de este tipo.</p>
+<p>Bajé el texto de la ley desde el sitio oficial (argentina.gob.ar). La
+primera vez que lo descargué y revisé el reporte, tenía 182.887 caracteres
+pero al mirar el final del archivo me di cuenta de que traía pegado un anexo de
+"Antecedentes normativos": una lista de qué artículo fue modificado por qué
+ley, que no es parte del articulado en sí. Tuve que ajustar el script de
+limpieza para cortar ese anexo sin llevarme puesto contenido real. Aprendí
+que descargar el texto es solo el primer paso: hay que revisarlo con
+cuidado antes de asumir que esta listo para usar.</p>
+<h3 id="22-partir-el-texto-en-fragmentos-chunking">2.2 Partir el texto en fragmentos (chunking)</h3>
+<p>Acá tuve que pensar distinto a como lo había hecho en el challenge anterior donde partía el texto cada 500 caracteres fijos. Con una ley
+eso no funciona bien, porque muchos artículos tienen una nota al final que
+dice si fueron modificados o derogados, y si el corte cae justo en el medio,
+se puede perder esa información o quedar separada del artículo al que
+corresponde.</p>
+<p>Entonces decidí partir el texto <strong>por artículo completo</strong>, usando el propio
+número de artículo como marca de corte. Así cada fragmento queda con su
+texto y su nota de vigencia juntos, sin importar cuánto mida.</p>
+<p>La única excepción son los artículos muy largos: Cohere admite hasta unos
+512 tokens por texto (~2.000 caracteres) y si un artículo es más largo, lo
+trunca y se pierde el final. Por eso los que pasan de 1.500 caracteres (47
+de 293) los parto en trozos, y cada trozo arranca con el encabezado de su
+artículo para que no pierda el contexto aunque se lea suelto.</p>
+<p>En el camino encontré un problema que no había previsto: un artículo (el 134) aparecía mencionado dos veces en el texto, en dos lugares distintos, y
+mi programa lo interpretaba como si fueran dos artículos separados con el
+mismo número, lo que después generaba un error porque no podía haber dos
+identificadores iguales en la base de datos. Tuve que agregar una
+numeración correlativa para que cada fragmento tuviera un identificador
+único aunque el número de artículo se repitiera. Fue un buen recordatorio
+de que un texto legal real tiene irregularidades que uno no anticipa hasta
+que las ve fallar.</p>
+<h3 id="23-metadata">2.3 Metadata</h3>
+<p>Cada fragmento guarda la ley, el número de artículo, el título, el capítulo
+y si está derogado. La que más uso es la de derogado: el endpoint
+<code>/retrieve</code> puede filtrar los artículos derogados en la propia búsqueda, el
+contexto que recibe el modelo marca cada artículo derogado para que lo
+advierta, y si la respuesta se apoya en uno, va a revisión humana (ver
+<a href="#29-agregar-un-control-humano-human-in-the-loop">2.9</a>).</p>
+<h3 id="24-cargar-la-base-vectorial">2.4 Cargar la base vectorial</h3>
+<p>Una vez que tuve los artículos bien separados, generé los embeddings con
+Cohere y los guardé en ChromaDB de forma persistente (o sea, que queda
+guardado en disco y no se pierde si reinicio el servidor). Esto lo corrí
+como un script aparte, una sola vez, separado de la API: la API solo
+consulta lo que ya está cargado, no vuelve a procesar el texto cada vez que
+alguien hace una pregunta.</p>
+<p>Terminé con 317 fragmentos de los 278 artículos de la ley (más los que
+tienen sufijo "bis" o "ter", como el 92 bis del período de prueba).</p>
+<h3 id="25-cuántos-artículos-busco-y-cuántos-le-paso-al-modelo">2.5 Cuántos artículos busco y cuántos le paso al modelo</h3>
+<p>Pido 10 candidatos a la búsqueda. Pido de más porque el
+embedding no siempre deja el artículo correcto arriba (por ejemplo: en
+"período de prueba" entraba el art. 50, que trata la prueba del contrato).
+Con 10 candidatos el reranker tiene margen para reordenar.</p>
+<p>Después del reranking le paso al modelo como máximo 3 (Top-K = 3). Las
+consultas típicas se responden con un artículo, o con dos que se remiten
+entre sí (por ejemplo, el 92 bis y el 231). Ponerle mas contexto aumenta el riesgo
+de que el modelo cite artículos que no responden la consulta.</p>
+<h3 id="26-calibrar-cuándo-el-sistema-debe-responder">2.6 Calibrar cuándo el sistema debe responder</h3>
+<p>Esta fue, para mí, la parte más interesante de todo el proyecto, porque no
+es algo que se resuelva "a ojo": hay que medir.</p>
+<p>El sistema busca los artículos más parecidos a la pregunta y les asigna un
+número entre 0 y 1 (cuanto más alto, más parecido). Pero necesitaba definir
+a partir de que número considero que la pregunta realmente tiene que ver
+con la ley, y por debajo cual pregunta no.</p>
+<p>Hice varias preguntas de prueba y anoté los números que me devolvía:</p>
+<ul>
+<li>Preguntas que sí eran sobre la ley (vacaciones, período de prueba,
+  salario mínimo) dieron números entre 0.56 y 0.72.</li>
+<li>Preguntas que no tenían nada que ver (la capital de Francia, una receta
+  de tarta) dieron entre 0.33 y 0.34.</li>
+</ul>
+<p>Con esos datos elegí 0.45 como el punto de corte, porque queda justo en el
+medio, lejos de los dos grupos. Antes de medir esto, había puesto un número
+al azar (0.30) y con ese número una pregunta sobre una tarta de manzana
+casi pasaba el filtro. Aprendí que un umbral sin medir es una apuesta, no
+una decisión.</p>
+<h3 id="27-agregar-reranking">2.7 Agregar reranking</h3>
+<p>Después de tener esto funcionando, me di cuenta mirando los artículos que
+el sistema citaba a veces traía un artículo que no tenía mucho que
+ver con la pregunta, solo porque compartía alguna palabra. Por ejemplo,
+para "período de prueba" (que es cuando alguien recién empieza a trabajar)
+el sistema a veces traía un artículo que habla de la "prueba" del contrato
+en otro sentido, el de acreditar que existió.</p>
+<p>Investigué y encontré que Cohere tiene un servicio aparte llamado "reranking", que agarra un grupo
+de candidatos y los reordena comparando la pregunta contra cada uno de
+forma más profunda que la búsqueda inicial. Lo probé con un script aparte
+antes de meterlo en el sistema principal, para no arriesgar lo que ya
+funcionaba, y medí el antes y el después:</p>
+<ul>
+<li>En la pregunta sobre período de prueba, el artículo confuso (el 50) bajó
+  del segundo al tercer lugar, y apareció uno que tiene más sentido (el
+  231, sobre preaviso, al que el propio artículo del período de prueba
+  hace referencia).</li>
+<li>En la pregunta sobre vacaciones, salió un artículo genérico sobre
+  antigüedad que no aportaba nada, y entró otro artículo del mismo tema de
+  vacaciones.</li>
+</ul>
+<p>Con esos números pude decidir con evidencia que valía la pena agregarlo.</p>
+<p>Tuve que aprender algo más en el camino: el número que da el reranking no
+se puede comparar directamente con el número de la búsqueda inicial, son
+dos escalas distintas. Por eso terminé con dos filtros separados, cada uno
+con su propio punto de corte medido por separado.</p>
+<p>Un dato curioso que también aprendí en el camino: cuando busqué el nombre
+del modelo de reranking a usar, resultó que el que aparecía en la
+documentación que encontré primero (<code>rerank-v3.5</code>) ya estaba dado de baja
+por Cohere. Me pasó algo parecido con el modelo de generación de texto en el challenge anterior. Ahí entendí que trabajar con servicios de terceros implica que las cosas
+cambian con el tiempo, y por eso dejé los nombres de los modelos en un
+solo lugar del código, para poder actualizarlos fácilmente si vuelve a
+pasar.</p>
+<h3 id="28-el-prompt-y-la-respuesta">2.8 El prompt y la respuesta</h3>
+<p>Pasé las instrucciones del modelo al "system prompt", que es un lugar separado de la pregunta del usuario, y las ordené por secciones: qué rol tiene, cómo usar la evidencia, qué hacer cuando no hay información, qué no puede hacer y cómo tiene que ser la respuesta.</p>
+<p>Acá pude reutilizar bastante de lo que había aprendido en el challenge
+anterior: la estructura de FastAPI, el manejo de errores, el
+guardrail de lenguaje inapropiado, la forma de loguear cada paso de una
+consulta sin exponer datos sensibles.</p>
+<p>Lo que sí fue nuevo para este proyecto:</p>
+<p><strong>Que la misma pregunta genere siempre la misma respuesta.</strong> Al principio
+pensé que alcanzaba con bajar la "temperatura" del modelo a 0 (un parámetro
+que controla cuánta variación tiene la respuesta). Pero aprendí que incluso
+en 0 los LLM pueden variar un poco entre una llamada y
+otra. La forma de garantizarlo de verdad fue guardar la respuesta la
+primera vez que se genera una pregunta, y devolver esa misma respuesta
+guardada si alguien vuelve a preguntar lo mismo (aunque lo escriba distinto,
+con o sin tildes, con mayúsculas o no).</p>
+<p><strong>Que responda siempre en español</strong>, sin importar en qué idioma pregunten.
+Esto lo agregué como instrucción directa en el prompt y lo probé
+preguntando en inglés para confirmar que funcionaba.</p>
+<p><strong>Que no use emojis.</strong> Se lo pedí al modelo por instrucción, pero además
+agregué un filtro que los elimina de la respuesta por si el modelo no
+obedece. Aprendí que una instrucción en el prompt es una sugerencia, no una
+garantía; un filtro después sí lo es.</p>
+<p><strong>El aviso legal.</strong> Como el tema es normativa laboral, me pareció importante
+que cada respuesta aclarara que es información general y no un consejo
+legal para un caso puntual.</p>
+<h3 id="29-agregar-un-control-humano-human-in-the-loop">2.9 Agregar un control humano (Human in the Loop)</h3>
+<p>La primera idea que surgió
+fue mandar a revisión todas las consultas sobre despidos, indemnizaciones o
+sanciones, porque son temas delicados. Pero lo pensé y no me convenció: si
+alguien pregunta cuánto preaviso le corresponde y la ley lo dice
+clarísimo, frenar esa respuesta no protege a nadie, solo la demora. Además,
+esas son de las preguntas más comunes, y si todas van a revisión, el
+revisor termina aprobando sin leer.</p>
+<p>Entonces decidí que lo que define si hace falta una persona no es el tema
+de la pregunta, sino <strong>qué tan buena es la evidencia</strong>. Quedaron dos
+criterios:</p>
+<ul>
+<li>Cuando entre los artículos que usa la respuesta hay uno <strong>derogado</strong>. La
+  ley tiene 16 artículos derogados, varios por la reforma de este año, y
+  alguien tiene que confirmar que la respuesta no se apoya en uno de ellos.</li>
+<li>Cuando la <strong>confianza es baja</strong>, o sea, cuando el mejor artículo tiene un
+  puntaje de reranking entre 0.30 y 0.50. En mis mediciones, las preguntas
+  que sí eran sobre la ley daban 0.57 o más, y las que no tenían nada que
+  ver daban 0.11 o menos. Lo del medio es una zona gris que ninguna
+  medición respalda, y ahí prefiero que decida una persona.</li>
+</ul>
+<p>Cuando pasa alguna de esas dos cosas, el sistema genera la respuesta
+igual, pero no la muestra: queda "pendiente de aprobación" hasta que un
+revisor la aprueba o la rechaza.</p>
+<p>Para probarlo busqué preguntas reales que cayeran en cada caso, y una me
+sirvió mucho para entender por qué esto hace falta. Pregunté "¿me pueden
+pagar con tickets de comida?" y el sistema respondió que no, "según el
+artículo 131". Suena convincente, pero cuando fui a leer el artículo 131,
+habla de los descuentos que no se pueden hacer sobre el sueldo, no de cómo
+se paga. Lo que dice que el sueldo se paga en dinero es el artículo 105. La
+respuesta sonaba segura, citaba un artículo real, y estaba mal
+fundamentada. Ese es justo el tipo de error que un revisor tiene que
+atajar.</p>
+<h3 id="210-un-caso-que-me-pareció-importante-para-ia-responsable">2.10 Un caso que me pareció importante para IA Responsable</h3>
+<p>Durante las pruebas le pregunté al sistema cuánto es el salario mínimo
+vital y móvil. La búsqueda encontró los artículos correctos de la ley (los
+que hablan del salario mínimo) con el número de similitud más alto de
+todas mis pruebas. Pero la respuesta que generó el modelo fue que la ley
+define el concepto, pero no fija ningún monto (eso lo establece otro
+organismo, no esta ley). Y el sistema marcó esa respuesta como "no
+fundamentada" a pesar de que la búsqueda había encontrado muy bien los
+artículos.</p>
+<p>Me pareció un buen ejemplo de que el sistema no solo mide si encontró
+algo parecido, sino que además el modelo revisa si con eso alcanza para
+responder. Si solo hubiera confiado en el número de similitud, el sistema
+habría marcado esa respuesta como confiable cuando en realidad el dato
+concreto que pedía la pregunta no estaba en el texto.</p>
+<h3 id="211-cuando-el-modelo-se-rompe">2.11 Cuando el modelo se rompe</h3>
+<p>Durante las pruebas me pasó algo que no esperaba: una vez, en vez de
+responder sobre las horas extra que le habia preguntado, el modelo devolvió miles de "3" seguidos.
+Y lo peor es que esa respuesta quedó guardada, así que si alguien volvía a
+preguntar lo mismo, iba a recibir esa basura.</p>
+<p>Como no lo puedo evitar, lo que hice fue detectarlo: el sistema revisa si
+la respuesta es una repetición sin sentido y, si lo es, vuelve a intentar
+hasta tres veces. Si igual falla, devuelve un error en vez de guardar algo
+roto. En la evaluación pasó en una pregunta: falló dos veces seguidas y al
+tercer intento salió bien. Aprendí que la temperatura en 0 no garantiza que
+el modelo se comporte siempre igual, y que hay que revisar lo que devuelve
+antes de confiar en eso.</p>
+<h3 id="212-pruebas-de-punta-a-punta">2.12 Pruebas de punta a punta</h3>
+<p>Las pruebas automáticas usan mi sistema completo : Cohere y la base
+vectorial con la ley cargada. Entra una pregunta, el
+sistema encuentre el artículo, el modelo genera la respuesta y salga todo por
+la API.</p>
+<p>Hay una prueba por cada caso:</p>
+<div class="tabla"><table>
+<thead>
+<tr>
+<th>Caso</th>
+<th>Pregunta</th>
+<th>Qué verifico</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Pregunta válida</td>
+<td>¿Cuántos días de vacaciones me corresponden con 8 años de antigüedad?</td>
+<td>Que responda, que la respuesta esté fundamentada y que traiga el aviso legal</td>
+</tr>
+<tr>
+<td>Consulta sin evidencia suficiente</td>
+<td>¿Cuál es la capital de Francia?</td>
+<td>Que no invente: avisa que no corresponde a la ley y no cita nada</td>
+</tr>
+<tr>
+<td>Recuperación de fuentes</td>
+<td>¿Durante cuánto tiempo se presume que un despido es por causa del embarazo?</td>
+<td>Que entre las fuentes esté el artículo 178, con su título, capítulo y puntaje</td>
+</tr>
+<tr>
+<td>Respuesta del LLM</td>
+<td>¿Cuándo se paga el aguinaldo?</td>
+<td>Que diga "30 de junio" y "18 de diciembre" y cite el artículo 122</td>
+</tr>
+<tr>
+<td>Human in the Loop</td>
+<td>¿Qué dice la ley del trabajo nocturno?</td>
+<td>Que quede pendiente por el artículo 173 derogado, que el usuario no vea la respuesta, que el revisor sí, y que al aprobarla se entregue</td>
+</tr>
+<tr>
+<td>Error controlado</td>
+<td>Una pregunta vacía</td>
+<td>Que devuelva un error claro, sin romper la API</td>
+</tr>
+</tbody>
+</table></div>
+<p>🎯✍Como el modelo no responde siempre con las mismas palabras, no comparo el
+texto exacto sino lo que tiene que ser fijo: el estado, el artículo citado,
+el dato clave y el código de error.</p>
+<p>El sistema manda a revisión humana cuando encuentra un artículo derogado, el modelo avisa que está derogado y no responde; cuando el tema no está en la ley, se niega. La revisión
+queda para los casos borrosos de verdad, como el del trabajo nocturno, donde
+se mezcla un artículo derogado con otros vigentes. Un control humano que se
+activa pocas veces no es un problema: es señal de que las otras defensas
+funcionan.</p>
+<h3 id="213-ordenar-el-código-en-carpetas">2.13 Ordenar el código en carpetas</h3>
+<p>Al final ordené el proyecto en carpetas con la estructura que aprendimos en
+el challenge anterior: <code>api/</code> para los endpoints, <code>services/</code> para la
+lógica (RAG, revisión humana y caché), <code>infrastructure/</code> para las
+conexiones con Cohere y ChromaDB, <code>schemas/</code> para los datos que entran y
+salen, y un <code>config.py</code> con los modelos, los umbrales y las rutas en un
+solo lugar. No cambié nada de la lógica, así que la evaluación sigue
+estando bien.</p>
+<hr />
+<h2 id="3-evaluación">3. Evaluación</h2>
+<h3 id="31-qué-quise-medir">3.1 Qué quise medir</h3>
+<p>Que el asistente conteste no alcanza para saber si funciona bien. Un RAG
+puede fallar en dos lugares distintos: cuando <strong>busca</strong> (si no encuentra el
+artículo correcto, el modelo no tiene de dónde sacar la respuesta) y cuando
+<strong>genera</strong> (aunque tenga el artículo correcto, se puede equivocar o
+inventar). Por eso separé la evaluación en tres partes:</p>
+<ul>
+<li><strong>Retrieval:</strong> ¿el sistema encontró el artículo que responde la pregunta?</li>
+<li><strong>Comportamiento:</strong> ¿hizo lo que tenía que hacer? Responder, negarse si no
+  hay información, cortar si la pregunta no es sobre la ley, o mandar a
+  revisión humana.</li>
+<li><strong>Generación:</strong> ¿la respuesta es correcta, relevante y está respaldada por
+  los artículos que recibió?</li>
+</ul>
+<h3 id="32-cómo-armé-el-dataset">3.2 Cómo armé el dataset</h3>
+<p>Armé 15 preguntas y para cada una anoté a mano, leyendo la ley, qué
+artículo la responde y qué dato tiene que aparecer en la respuesta (por
+ejemplo, "21 días"). Traté de que no fueran todas fáciles: varias tienen
+alguna trampa.</p>
+<div class="tabla"><table>
+<thead>
+<tr>
+<th>Tipo</th>
+<th style="text-align: center;">Cantidad</th>
+<th>Para qué</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Respondibles</td>
+<td style="text-align: center;">5</td>
+<td>Preguntas comunes. Algunas usan palabras que la ley no usa ("aguinaldo", "casamiento", "hora extra"), para ver si la búsqueda por significado funciona.</td>
+</tr>
+<tr>
+<td>Específicas</td>
+<td style="text-align: center;">5</td>
+<td>Hay que encontrar un dato puntual dentro de un artículo largo, como el día de licencia por un hermano entre todas las licencias del art. 158.</td>
+</tr>
+<tr>
+<td>Sin respuesta en la ley</td>
+<td style="text-align: center;">2</td>
+<td>El tema es de la ley pero el dato no está: el monto del salario mínimo y la licencia por mudanza. Son trampas porque los scores dan altos.</td>
+</tr>
+<tr>
+<td>Fuera de tema</td>
+<td style="text-align: center;">1</td>
+<td>"¿Cuál es la capital de Francia?"</td>
+</tr>
+<tr>
+<td>Human in the Loop</td>
+<td style="text-align: center;">2</td>
+<td>Tienen que quedar en revisión humana: una recupera un artículo derogado y la otra tiene evidencia débil.</td>
+</tr>
+</tbody>
+</table></div>
+<p>El dataset está en <code>eval/dataset.json</code> y el script que corre todo en
+<code>eval/evaluar.py</code>. El script llama directo a las funciones del RAG, sin
+pasar por el caché, para medir al sistema de verdad cada vez.</p>
+<h3 id="33-cómo-lo-medí">3.3 Cómo lo medí</h3>
+<p><strong>Retrieval.</strong> Para las 11 preguntas que tienen un artículo esperado usé
+tres métricas:</p>
+<ul>
+<li><strong>Hit rate@3:</strong> en cuántas preguntas el artículo correcto apareció entre
+  los 3 recuperados.</li>
+<li><strong>Recall@3:</strong> de todos los artículos esperados, cuántos aparecieron. Acá
+  da casi igual que el hit rate, porque casi todas las preguntas esperan un
+  solo artículo.</li>
+<li><strong>MRR:</strong> premia que el artículo correcto aparezca primero. Si está 1°,
+  suma 1; si está 2°, suma 1/2; si está 3°, suma 1/3. Después se promedia.</li>
+</ul>
+<p>Medí todo dos veces: <strong>solo con embeddings</strong> y <strong>con embeddings +
+reranking</strong>, para ver si el reranker de verdad aporta algo o si lo había
+agregado de adorno.</p>
+<p><strong>Generación.</strong> Para las respuestas usé tres cosas, porque ninguna sola me
+daba confianza:</p>
+<ul>
+<li><strong>Chequeo automático:</strong> si la respuesta contiene el dato clave y cita el
+  artículo esperado. Es simple: busca texto.</li>
+<li><strong>LLM-as-a-Judge:</strong> le pasé a un modelo (el mismo <code>command-a</code>) la
+  pregunta, los artículos, la respuesta y los datos esperados, y le pedí un
+  puntaje de 1 a 5 en tres criterios: correcta, relevante y fundamentada.</li>
+<li><strong>Revisión manual:</strong> leí cada respuesta y comparé cada afirmación contra
+  el texto de los artículos que recibió el modelo.</li>
+</ul>
+<p>Configuración usada: embeddings <code>embed-multilingual-v3.0</code>, reranker
+<code>rerank-v4.0-fast</code>, modelo <code>command-a-03-2025</code>; 10 candidatos, Top-K 3,
+umbral de similitud 0.45, umbral de rerank 0.30 y umbral de revisión humana
+0.50.</p>
+<h3 id="34-resultados">3.4 Resultados</h3>
+<div class="tabla"><table>
+<thead>
+<tr>
+<th>Resumen</th>
+<th style="text-align: center;">Resultado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Comportamiento correcto</td>
+<td style="text-align: center;"><strong>15/15</strong></td>
+</tr>
+<tr>
+<td>Artículo correcto en el top 3 (con rerank)</td>
+<td style="text-align: center;"><strong>11/11</strong></td>
+</tr>
+<tr>
+<td>MRR con rerank</td>
+<td style="text-align: center;"><strong>0.939</strong></td>
+</tr>
+<tr>
+<td>"Fundamentada" según el juez (sobre 5)</td>
+<td style="text-align: center;"><strong>5.00</strong></td>
+</tr>
+<tr>
+<td>Sin agregados fuera del contexto (revisión manual)</td>
+<td style="text-align: center;"><strong>12/12</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Retrieval</strong></p>
+<div class="tabla"><table>
+<thead>
+<tr>
+<th>Métrica</th>
+<th>Solo embeddings</th>
+<th>Con reranking</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Hit rate@3</td>
+<td>0.909 (10 de 11)</td>
+<td>1.000 (11 de 11)</td>
+</tr>
+<tr>
+<td>Recall@3</td>
+<td>0.909</td>
+<td>1.000</td>
+</tr>
+<tr>
+<td>MRR</td>
+<td>0.909</td>
+<td>0.939</td>
+</tr>
+</tbody>
+</table></div>
+<p>Que el MRR con reranking sea 0.939 y no 1 se debe a una sola pregunta: en
+la de la edad para trabajar, el art. 189 quedó 3°. Pero sin reranking ni
+siquiera aparecía.</p>
+<p><strong>Comportamiento</strong></p>
+<div class="tabla"><table>
+<thead>
+<tr>
+<th>Tipo</th>
+<th>Lo esperado</th>
+<th>Resultado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Respondibles (5)</td>
+<td>Responder</td>
+<td class="ok">✓ 5 de 5</td>
+</tr>
+<tr>
+<td>Específicas (5)</td>
+<td>Responder</td>
+<td class="ok">✓ 5 de 5</td>
+</tr>
+<tr>
+<td>Sin respuesta en la ley (2)</td>
+<td>Negarse</td>
+<td class="ok">✓ 2 de 2</td>
+</tr>
+<tr>
+<td>Fuera de tema (1)</td>
+<td>Cortar sin llamar al modelo</td>
+<td class="ok">✓ 1 de 1</td>
+</tr>
+<tr>
+<td>Human in the Loop (2)</td>
+<td>Quedar en revisión humana</td>
+<td class="ok">✓ 2 de 2</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Generación</strong></p>
+<div class="tabla"><table>
+<thead>
+<tr>
+<th>Qué se midió</th>
+<th>Resultado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Dato clave presente (chequeo automático)</td>
+<td>11 de 11</td>
+</tr>
+<tr>
+<td>Cita el artículo esperado (chequeo automático)</td>
+<td>11 de 11</td>
+</tr>
+<tr>
+<td>Juez: correcta / relevante / fundamentada (12 respuestas)</td>
+<td>4.92 / 4.75 / 5.00</td>
+</tr>
+<tr>
+<td>Revisión manual: sin frases que no estén en el contexto</td>
+<td>12 de 12</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Pregunta por pregunta</strong> (Juez = puntajes de correcta / relevante /
+fundamentada, de 1 a 5)</p>
+<div class="tabla"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Pregunta</th>
+<th>Esperado</th>
+<th>Top 3 con rerank</th>
+<th>Resultado</th>
+<th>Juez</th>
+<th>Revisión manual</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Vacaciones con 8 años</td>
+<td>150</td>
+<td>150, 153, 155</td>
+<td class="ok">✓ Responde</td>
+<td>5/5/5</td>
+<td class="ok">✓ Correcta</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Período de prueba</td>
+<td>92 bis</td>
+<td>92 bis, 150, 214</td>
+<td class="ok">✓ Responde</td>
+<td>5/5/5</td>
+<td class="ok">✓ Correcta</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Hora extra</td>
+<td>201</td>
+<td>201, 200, 197 bis</td>
+<td class="ok">✓ Responde</td>
+<td>5/5/5</td>
+<td class="ok">✓ Correcta (copia el artículo casi textual)</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Licencia por casamiento</td>
+<td>158</td>
+<td>158, 194, 150</td>
+<td class="ok">✓ Responde</td>
+<td>5/5/5</td>
+<td class="ok">✓ Correcta</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Aguinaldo</td>
+<td>122</td>
+<td>122, 130, 126</td>
+<td class="ok">✓ Responde</td>
+<td>5/5/5</td>
+<td class="ok">✓ Correcta</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Preaviso con 3 años</td>
+<td>231</td>
+<td>231, 245, 181</td>
+<td class="ok">✓ Responde</td>
+<td>5/5/5</td>
+<td class="ok">✓ Correcta</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Fallecimiento de un hermano</td>
+<td>158</td>
+<td>158, 150, 194</td>
+<td class="ok">✓ Responde</td>
+<td>5/5/5</td>
+<td class="ok">✓ Correcta</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Jornada nocturna</td>
+<td>200</td>
+<td>200, 190, 197</td>
+<td class="ok">✓ Responde</td>
+<td>5/5/5</td>
+<td class="ok">✓ Correcta</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Edad para trabajar</td>
+<td>189</td>
+<td>32, 187, 189</td>
+<td class="ok">✓ Responde</td>
+<td>4/3/5</td>
+<td class="ok">✓ Correcta (el juez la castigó por explicar la excepción)</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Despido por embarazo</td>
+<td>178</td>
+<td>178, 181, 177</td>
+<td class="ok">✓ Responde</td>
+<td>5/5/5</td>
+<td class="ok">✓ Correcta</td>
+</tr>
+<tr>
+<td>11</td>
+<td>Monto del salario mínimo</td>
+<td>—</td>
+<td>116, 118, 112</td>
+<td class="ok">✓ Se niega</td>
+<td>—</td>
+<td class="ok">✓ Correcto negarse</td>
+</tr>
+<tr>
+<td>12</td>
+<td>Licencia por mudanza</td>
+<td>—</td>
+<td>237, 150, 153</td>
+<td class="ok">✓ Se niega</td>
+<td>—</td>
+<td class="ok">✓ Correcto negarse</td>
+</tr>
+<tr>
+<td>13</td>
+<td>Capital de Francia</td>
+<td>—</td>
+<td>(cortó antes)</td>
+<td class="ok">✓ Fuera de tema</td>
+<td>—</td>
+<td class="ok">✓ No llamó al modelo</td>
+</tr>
+<tr>
+<td>14</td>
+<td>Trabajo nocturno</td>
+<td>200, 190</td>
+<td>190, 200, 173 (derogado)</td>
+<td class="ok">✓ A revisión</td>
+<td>5/5/5</td>
+<td class="ok">✓ Correcta: se apoya en el 190 y el 200</td>
+</tr>
+<tr>
+<td>15</td>
+<td>Tickets de comida</td>
+<td>—</td>
+<td>131, 106, 105</td>
+<td class="ok">✓ A revisión</td>
+<td>5/4/5</td>
+<td class="mal">✗ Describe el art. 131 (descuentos) pero no responde la pregunta</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="35-lo-que-aprendí">3.5 Lo que aprendí</h3>
+<p><strong>El reranker sí hace falta.</strong> En la #9 ("¿A partir de qué edad se puede
+trabajar?"), solo con embeddings los 3 primeros fueron los arts. 32, 190 y
+187, y el 189, que es el que dice "queda prohibido ocupar personas menores
+de dieciséis años", no aparecía. El reranker lo metió en el top 3. En la</p>
+<h1 id="1-los-embeddings-ponían-2-el-art-18-que-habla-de-antigüedad-pero-no-de">1, los embeddings ponían 2° el art. 18, que habla de antigüedad pero no de</h1>
+<p>vacaciones, y el reranker lo sacó. Antes de esta evaluación tenía la
+intuición de que el reranker ayudaba; ahora lo puedo mostrar con números.</p>
+<p><strong>Negarse también es acertar.</strong> En el salario mínimo (#11) y en la licencia
+por mudanza (#12) los scores fueron altos (similitud 0.69 y 0.62), así que
+ninguno de mis dos filtros los frenó. Lo que salvó el caso fue la regla del
+prompt: el modelo leyó los artículos, vio que el dato no estaba y respondió
+"No cuento con información suficiente". Aprendí que los umbrales sirven
+para las preguntas que no tienen nada que ver con la ley, pero para las que
+son "del tema pero sin el dato", la última defensa es el prompt.</p>
+<p><strong>El modelo agregaba cosas que no estaban en el contexto.</strong> Esta fue la
+sorpresa más grande. En la primera corrida de esta evaluación, leyendo las
+respuestas a mano, encontré que en 3 de las 10 respondibles y específicas
+el modelo agregaba alguna frase que no estaba en los artículos que le pasé.</p>
+<p>Por ejemplo, en la del preaviso (#6) explicaba que "este plazo es para que
+el trabajador pueda buscar otro empleo", algo que la ley no dice, y daba el
+monto de la indemnización "según el artículo 231", cuando ese dato está en
+el 232, que ni siquiera se había recuperado. Las respuestas eran correctas
+en lo principal y las frases agregadas sonaban razonables, así que nadie
+las nota si no compara línea por línea.</p>
+<p>Agregué una regla al prompt: <strong>no agregar explicaciones ni consecuencias
+que no estén escritas en los artículos del contexto, aunque sean ciertas</strong>.
+Volví a correr la evaluación y ninguna respuesta agregó nada: 12 de 12. Los
+números de este documento son los de esa segunda corrida.</p>
+<p><strong>El juez también se equivoca.</strong> En la primera corrida, el LLM-as-a-Judge
+les había puesto "fundamentada: 5" a esas tres respuestas con frases
+agregadas. También a la de los tickets de comida (#15), que en ese momento
+decía que no se podía "según el artículo 131", cuando el 131 trata sobre
+descuentos al sueldo y lo que dice que el salario se paga en dinero es el 105. Ahora el juez y mi revisión coinciden, pero eso no lo hubiera sabido
+sin leer yo las respuestas. Y en la #9 le sigue bajando el puntaje de
+relevancia por explicar la excepción de la empresa familiar, que a mí me
+parece información útil.</p>
+<p>Mi conclusión es que usar el mismo modelo como juez tiene un problema:
+comparte las cegueras del modelo que genera. Esto también me confirmó que
+el Human in the Loop tiene que ser una persona y no otro modelo.</p>
+<p><strong>Un prompt más estricto también tiene un costo.</strong> Con la regla nueva, el
+modelo se volvió más literal. En la #3 (hora extra) copió el artículo casi
+palabra por palabra, incluso un error de tipeo que tiene la ley ("si se
+tratare del días comunes"). Es correcto, pero para alguien sin formación
+jurídica es menos claro. Y en la #15 ya no afirma nada con el artículo
+equivocado, pero tampoco responde la pregunta: describe lo que dice el 131
+sobre descuentos. Por suerte esa respuesta igual queda en revisión humana,
+y el revisor la rechazaría. Aprendí que ajustar un prompt es un equilibrio:
+lo que gané en fidelidad lo perdí un poco en claridad.</p>
+<p><strong>Hay que revisar también la evaluación.</strong></p>
+<ul>
+<li>En una corrida anterior, mi chequeo automático marcó mal la #10: buscaba
+  "siete y medio" y la respuesta decía "siete meses y medio". La respuesta
+  estaba bien; el que estaba mal era mi chequeo. Lo corregí agregando esa
+  variante.</li>
+<li>Revisando el texto encontré que el art. 189 bis quedó pegado dentro del
+  189, porque la ley lo escribe "Art. 189. Bis" (con un punto) y mi patrón
+  no lo reconoce. No cambia las respuestas, porque el texto está completo,
+  pero es un error de parseo que quedó anotado.</li>
+<li>Por el límite de 1000 llamadas por mes de la clave gratuita, esta
+  evaluación la corrí una sola vez, espaciando las preguntas para no pasar
+  los límites por minuto.</li>
+</ul>
+<hr />
+<h2 id="4-qué-haría-para-mejorar">4. Qué haría para mejorar</h2>
+<ul>
+<li><strong>Buscar el equilibrio del prompt:</strong> que no agregue nada fuera del
+  contexto, pero que explique con palabras simples en vez de copiar el
+  artículo.</li>
+<li><strong>Usar un juez de otro modelo</strong> (o de otro proveedor), para que no
+  comparta las cegueras del que genera.</li>
+<li><strong>Sumar más preguntas</strong>, y que las respuestas esperadas las revise alguien
+  que sepa de derecho laboral, no solo yo leyendo la ley.</li>
+<li><strong>Corregir el parseo</strong> de los artículos "bis" escritos con punto.</li>
+</ul>
+<hr />
+<h2 id="5-conclusiones">5. Conclusiones</h2>
+<p>El retrieval funciona bien: con reranking encontró el artículo correcto en
+las 11 preguntas, y el sistema se comportó como debía en las 15. Donde más
+aprendí fue en la generación: el modelo tendía a completar con información
+que no estaba en el contexto, y con una regla más en el prompt las 12
+respuestas se quedaron dentro de lo que dice la ley.</p>
+<p>Lo más importante que aprendí es que ninguna forma de evaluar alcanza sola.
+Las métricas de retrieval me mostraron que el reranker suma y el juez me dio
+un número rápido, pero las fallas más interesantes solo aparecieron cuando
+leí las respuestas una por una contra el texto de la ley. Y eso es
+justamente lo que hace el revisor humano en el Human in the Loop.</p>
+<hr />
+<h2 id="6-cómo-trabajé">6. Cómo trabajé</h2>
+<p>No escribí todo el código de una sola vez. Fui construyendo
+por partes: primero conseguí y revisé los datos, después armé el sistema de
+búsqueda, después la generación de respuestas, y en cada parte probé que
+funcionara antes de seguir con la siguiente. Varias veces encontré un
+problema recién al probarlo con datos reales, no leyendo el código nomás
+(el caso del artículo 134 repetido es un buen ejemplo: si no llegaba a
+correr la carga real, no me hubiera dado cuenta).</p>
+<hr />
+<h2 id="7-qué-me-falta-entender-mejor">7. Qué me falta entender mejor</h2>
+<p>Hay conceptos que todavía tengo que seguir leyendo, como el
+detalle matemático de cómo se calculan los embeddings o cómo funciona por
+dentro el modelo de reranking. Lo que sí puedo explicar con seguridad es
+<strong>qué decisión tomé, por qué la tomé, y qué medí para confirmar que era la
+correcta</strong> — que es, en definitiva, la forma de pensar que ya tenía de mi
+trabajo como QA, aplicada a un tipo de sistema RAG que yo mismo construí.</p>
+</main>
+</body>
+</html>

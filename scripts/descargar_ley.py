@@ -1,14 +1,15 @@
 """
-descargar_ley.py — Descarga y limpia el texto de la Ley 20.744.
+descargar_ley.py — Descarga y limpia el texto de la Ley 20.744. 🌐📃
 
 Se corre UNA sola vez:
 
-    python descargar_ley.py
+    python scripts/descargar_ley.py
 
-Guarda tres cosas en ley/:
+Guarda tres cosas en data/:
   - ley_20744_crudo.html  el HTML original (por si hay que revisar algo)
   - ley_20744.txt         el texto limpio, que es lo que vamos a indexar
   - reporte.txt           estadísticas para verificar que salió bien
+  🌐📃
 """
 
 import os
@@ -20,10 +21,12 @@ from bs4 import BeautifulSoup
 
 URL = "https://www.argentina.gob.ar/normativa/nacional/norma-25552/actualizacion"
 
-CARPETA = "ley"
+# data/ en la raíz del proyecto, se corra desde donde se corra
+CARPETA = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
 
 # Desde dónde empieza el texto que nos interesa. Todo lo anterior es
-# el menú del sitio, migas de pan y datos de publicación.
+# el menú del sitio, migas de pan y datos de publicación. 👍📃
+
 MARCA_INICIO = "REGIMEN DE CONTRATO DE TRABAJO"
 
 # Textos que marcan el final del articulado. Si aparecen, cortamos ahí.
@@ -54,11 +57,12 @@ def descargar(url):
 
 def html_a_texto(html):
     """
+    📃🌐
     Convierte el HTML en texto plano.
 
     Saca scripts, estilos y navegación, y pone un salto de línea
     entre bloques para no pegar el final de un párrafo con el
-    principio del siguiente.
+    principio del siguiente. 📃🌐
     """
     soup = BeautifulSoup(html, "lxml")
 
@@ -83,7 +87,7 @@ def recortar(texto):
         texto = texto[inicio:]
 
     # Buscamos las marcas de fin en la mitad final del texto, para no
-    # cortar por una coincidencia en medio del articulado.
+    # cortar por una coincidencia en medio de los articulos.
     # La comparación ignora tildes y mayúsculas por si el sitio cambia.
     plano = _sin_tildes(texto)
     limite = int(len(texto) * 0.5)

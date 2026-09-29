@@ -1,13 +1,6 @@
 """
-gui.py — Interfaz gráfica para el asistente de consulta laboral.
+🌐 gui.py — Interfaz para mi asistente conversacional. 🌐
 
-Esto NO es la API: es una pantalla que le hace pedidos a la API.
-Por eso hacen falta DOS terminales para verla funcionar:
-
-    Terminal 1:  uvicorn main:app --reload
-    Terminal 2:  streamlit run gui.py
-
-Se abre sola en el navegador, normalmente en http://localhost:8501
 """
 
 import requests
@@ -21,12 +14,13 @@ st.set_page_config(page_title="Asistente Ley 20.744", page_icon="⚖️")
 st.title("⚖️ Asistente de Consulta Laboral")
 st.caption("Ley de Contrato de Trabajo N° 20.744 (Argentina)")
 
-pregunta = st.text_input(
-    "Escribí tu consulta:",
-    placeholder="Ej: ¿cuántos días de vacaciones me corresponden con 8 años de antigüedad?",
-)
-
-consultar = st.button("Consultar", type="primary")
+# Dentro de un form, apretar ENTER en el campo manda la consulta igual que el botón.
+with st.form("consulta"):
+    pregunta = st.text_input(
+        "Escribí tu consulta:",
+        placeholder="Ej: ¿cuántos días de vacaciones me corresponden con 8 años de antigüedad?",
+    )
+    consultar = st.form_submit_button("Consultar", type="primary")
 
 
 def preguntar_a_la_api(pregunta):

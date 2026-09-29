@@ -9,7 +9,7 @@
 [![ChromaDB](https://img.shields.io/badge/ChromaDB-1.5-FF6B6B?style=flat-square)](https://www.trychroma.com/)
 [![Cohere](https://img.shields.io/badge/Cohere-command--a%20%2B%20rerank--v4-39594D?style=flat-square)](https://cohere.com/)
 
-_Challenge Final — Get Talent (Pi Data)_
+\_Challenge Final — Get Talent
 
 </div>
 
@@ -35,12 +35,12 @@ _Challenge Final — Get Talent (Pi Data)_
 
 ## 🎯 El problema
 
-|                  |                                                                                                                                                                                                                                                  |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Problema**     | La Ley de Contrato de Trabajo (20.744) tiene más de 280 artículos y fue reformada en marzo de 2026 (Ley 27.802), que sustituyó o derogó partes del articulado. Encontrar el artículo que responde una duda concreta —y saber si sigue vigente— no es inmediato. |
-| **Usuario**      | Trabajadores y empleadores sin formación jurídica, que tienen una duda puntual: cuántos días de vacaciones les tocan, cuánto dura el período de prueba, con cuánta anticipación hay que avisar un despido.                                          |
-| **Necesidad**    | Una respuesta en lenguaje simple, **con el artículo exacto** para poder verificarla, que advierta si la norma está derogada y que diga "no sé" cuando la ley no lo dice, en vez de inventar.                                                        |
-| **Solución**     | Un asistente RAG que responde **solo con el texto vigente de la ley**, cita el artículo, advierte los derogados, se niega cuando la evidencia no alcanza y manda a **revisión humana** las respuestas con evidencia dudosa.                          |
+|               |                                                                                                                                                                                                                                                                                 |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Problema**  | La Ley de Contrato de Trabajo (20.744) tiene más de 280 artículos y fue reformada en marzo de 2026 (Ley 27.802), que sustituyó o derogó partes de lo articulado anteriormente. Encontrar el artículo que responde una duda concreta —y saber si sigue vigente— no es inmediato. |
+| **Usuario**   | Usuarios comunes , estudiantes de derecho , trabajadores y empleadores sin formación jurídica, que tienen una duda puntual: cuántos días de vacaciones les tocan, cuánto dura el período de prueba, con cuánta anticipación hay que avisar un despido.                          |
+| **Necesidad** | Una respuesta en lenguaje simple, **con el artículo exacto** para poder verificarla, que advierta si la norma está derogada y que diga "no sé" cuando la ley no lo dice, en vez de inventar.                                                                                    |
+| **Solución**  | Un asistente conversacional (RAG) que responde **solo con el texto vigente de la ley**, cita el artículo, advierte los derogados, se niega cuando la evidencia no alcanza y manda a **revisión humana** las respuestas con evidencia dudosa.                                    |
 
 ### Por qué IA, y por qué RAG
 
@@ -52,7 +52,7 @@ _Challenge Final — Get Talent (Pi Data)_
   correcto en primer lugar.
 - **Por qué no un chatbot general sin RAG:** lo que sabe un modelo puede ser
   anterior a la reforma de 2026, no dice de dónde saca cada dato y, si no
-  sabe, puede inventar. Con RAG cada respuesta sale del texto vigente, trae
+  sabe, puede inventar. Con un RAG cada respuesta sale del texto vigente, trae
   sus fuentes y, si el texto no lo dice, el sistema se niega.
 - **Por qué no reentrenar un modelo (fine-tuning):** la ley cambia. Con RAG,
   actualizarla es volver a descargar el texto y correr la ingesta, sin
@@ -77,9 +77,9 @@ COHERE_API_KEY=tu_api_key_aca
 **3.** Cargar la base de conocimiento (una sola vez)
 
 ```bash
-python descargar_ley.py         # descarga y limpia el texto de la ley
-python ingesta.py --verificar   # revisa el parseo SIN llamar a Cohere
-python ingesta.py               # genera embeddings y carga ChromaDB
+python scripts/descargar_ley.py         # descarga y limpia el texto de la ley
+python scripts/ingesta.py --verificar   # revisa el parseo SIN llamar a Cohere
+python scripts/ingesta.py               # genera embeddings y carga ChromaDB
 ```
 
 **4.** Levantar la API
@@ -95,7 +95,7 @@ uvicorn main:app --reload
 del paso 4 corriendo
 
 ```bash
-streamlit run gui.py
+streamlit run gui/gui.py
 ```
 
 Se abre sola en el navegador en `http://localhost:8501`.
@@ -104,20 +104,20 @@ Se abre sola en el navegador en `http://localhost:8501`.
 
 ## 🔌 Endpoints
 
-|     | Método | Ruta        | Descripción                                                                         |
-| :-: | :----: | ----------- | ----------------------------------------------------------------------------------- |
-| 💚  | `GET`  | `/health`   | Estado del servicio: fragmentos indexados, modelos, Top-K, umbrales, caché          |
+|     | Método | Ruta        | Descripción                                                                               |
+| :-: | :----: | ----------- | ----------------------------------------------------------------------------------------- |
+| 💚  | `GET`  | `/health`   | Estado del servicio: fragmentos indexados, modelos, Top-K, umbrales, caché                |
 | 🔍  | `POST` | `/retrieve` | **Solo retrieval**: devuelve los fragmentos recuperados con sus scores, sin llamar al LLM |
-| 💬  | `POST` | `/ask`      | Pregunta → retrieval → contexto → prompt → LLM → respuesta + fuentes                |
+| 💬  | `POST` | `/ask`      | Pregunta → retrieval → contexto → prompt → LLM → respuesta + fuentes                      |
 
 **Human in the Loop** (ver [la sección](#-human-in-the-loop)):
 
-|     | Método | Ruta                             | Quién la usa | Descripción                                               |
-| :-: | :----: | -------------------------------- | ------------ | --------------------------------------------------------- |
-| 📥  | `GET`  | `/revisiones/pendientes`         | Revisor      | Respuestas retenidas, con la propuesta de la IA y el motivo |
-| ✅  | `POST` | `/revisiones/{id}/aprobar`       | Revisor      | La respuesta se entrega y pasa al caché                   |
-| ❌  | `POST` | `/revisiones/{id}/rechazar`      | Revisor      | La respuesta no se entrega nunca                          |
-| 🔎  | `GET`  | `/revisiones/{id}`               | Usuario      | Estado de su consulta; el texto aparece solo si fue aprobada |
+|     | Método | Ruta                        | Quién la usa | Descripción                                                  |
+| :-: | :----: | --------------------------- | ------------ | ------------------------------------------------------------ |
+| 📥  | `GET`  | `/revisiones/pendientes`    | Revisor      | Respuestas retenidas, con la propuesta de la IA y el motivo  |
+| ✅  | `POST` | `/revisiones/{id}/aprobar`  | Revisor      | La respuesta se entrega y pasa al caché                      |
+| ❌  | `POST` | `/revisiones/{id}/rechazar` | Revisor      | La respuesta no se entrega nunca                             |
+| 🔎  | `GET`  | `/revisiones/{id}`          | Usuario      | Estado de su consulta; el texto aparece solo si fue aprobada |
 
 Todos los errores salen con el mismo formato `{"error": "..."}`: `422` si la
 entrada es inválida (pregunta vacía, JSON mal formado), `503` si Cohere no
@@ -149,9 +149,27 @@ curl -X POST http://localhost:8000/retrieve \
   "umbral_similitud": 0.45,
   "umbral_rerank": 0.3,
   "fragmentos": [
-    { "articulo": "92 bis", "score": 0.7111, "score_rerank": 0.8451, "derogado": false, "texto": "Art. 92 bis. — Período de prueba. ..." },
-    { "articulo": "231",    "score": 0.5518, "score_rerank": 0.7817, "derogado": false, "texto": "Art. 231. —Plazos. ..." },
-    { "articulo": "50",     "score": 0.6281, "score_rerank": 0.5695, "derogado": false, "texto": "Art. 50. —Prueba. ..." }
+    {
+      "articulo": "92 bis",
+      "score": 0.7111,
+      "score_rerank": 0.8451,
+      "derogado": false,
+      "texto": "Art. 92 bis. — Período de prueba. ..."
+    },
+    {
+      "articulo": "231",
+      "score": 0.5518,
+      "score_rerank": 0.7817,
+      "derogado": false,
+      "texto": "Art. 231. —Plazos. ..."
+    },
+    {
+      "articulo": "50",
+      "score": 0.6281,
+      "score_rerank": 0.5695,
+      "derogado": false,
+      "texto": "Art. 50. —Prueba. ..."
+    }
   ]
 }
 ```
@@ -183,7 +201,14 @@ curl -X POST http://localhost:8000/ask \
   "motivos_revision": [],
   "respuesta": "Según el artículo 150, te corresponden 21 días corridos de vacaciones.\n\nEste artículo establece que los trabajadores con una antigüedad mayor a cinco años, pero que no supere los diez, tienen derecho a veintiún días corridos de descanso anual remunerado.",
   "fuentes": [
-    { "articulo": "150", "titulo": "V - De las Vacaciones y otras Licencias", "capitulo": "I - Régimen General", "derogado": false, "score": 0.6578, "score_rerank": 0.8679 }
+    {
+      "articulo": "150",
+      "titulo": "V - De las Vacaciones y otras Licencias",
+      "capitulo": "I - Régimen General",
+      "derogado": false,
+      "score": 0.6578,
+      "score_rerank": 0.8679
+    }
   ],
   "similarity_score": 0.6578,
   "grounded": true,
@@ -196,9 +221,9 @@ curl -X POST http://localhost:8000/ask \
 
 ---
 
-## 🖥️ Interfaz gráfica (opcional)
+## 🖥️ Interfaz gráfica
 
-`gui.py` es una pantalla simple hecha con [Streamlit](https://streamlit.io/)
+`gui/gui.py` es una pantalla simple hecha con [Streamlit](https://streamlit.io/)
 para consultar el asistente sin usar Swagger ni la terminal. **No es la API:
 es una pantalla aparte que le hace pedidos a `/ask`.** Por eso hacen
 falta dos procesos corriendo al mismo tiempo (ver [Instalación](#-instalación)).
@@ -211,23 +236,23 @@ mensaje claro en vez de romperse.
 
 ## ❓ Preguntas de ejemplo
 
-Todas salen del dataset de evaluación (`eval/dataset.json`) y se probaron
-contra Cohere. Sirven para ver cada comportamiento del sistema.
+Todas salen del dataset de evaluación (`eval/dataset.json`) y se testearon
+contra Cohere. Sirven para ver cada comportamiento de la app.
 
 **Se responden, citando el artículo:**
 
-| Pregunta                                                                                                     | Artículo | Dato clave               |
-| ------------------------------------------------------------------------------------------------------------ | :------: | ------------------------ |
-| ¿Cuántos días de vacaciones me corresponden con 8 años de antigüedad?                                         |   150    | 21 días corridos         |
-| ¿Cuánto dura el período de prueba?                                                                            |  92 bis  | 6 meses                  |
-| ¿Cuánto se paga la hora extra?                                                                                |   201    | 50% y 100%               |
-| ¿Cuántos días de licencia me dan por casamiento?                                                              |   158    | 10 días corridos         |
+| Pregunta                                                                                                      | Artículo | Dato clave                    |
+| ------------------------------------------------------------------------------------------------------------- | :------: | ----------------------------- |
+| ¿Cuántos días de vacaciones me corresponden con 8 años de antigüedad?                                         |   150    | 21 días corridos              |
+| ¿Cuánto dura el período de prueba?                                                                            |  92 bis  | 6 meses                       |
+| ¿Cuánto se paga la hora extra?                                                                                |   201    | 50% y 100%                    |
+| ¿Cuántos días de licencia me dan por casamiento?                                                              |   158    | 10 días corridos              |
 | ¿Cuándo se paga el aguinaldo?                                                                                 |   122    | 30 de junio y 18 de diciembre |
-| Si tengo 3 años de antigüedad, ¿con cuánta anticipación me tiene que avisar el empleador antes de despedirme? |   231    | 1 mes                    |
-| ¿Cuántos días de licencia corresponden por el fallecimiento de un hermano?                                    |   158    | 1 día                    |
-| ¿Cuántas horas puede durar como máximo una jornada íntegramente nocturna?                                     |   200    | 7 horas                  |
-| ¿A partir de qué edad se puede trabajar?                                                                      |   189    | 16 años                  |
-| ¿Durante cuánto tiempo se presume que un despido es por causa del embarazo?                                   |   178    | 7 meses y medio          |
+| Si tengo 3 años de antigüedad, ¿con cuánta anticipación me tiene que avisar el empleador antes de despedirme? |   231    | 1 mes                         |
+| ¿Cuántos días de licencia corresponden por el fallecimiento de un hermano?                                    |   158    | 1 día                         |
+| ¿Cuántas horas puede durar como máximo una jornada íntegramente nocturna?                                     |   200    | 7 horas                       |
+| ¿A partir de qué edad se puede trabajar?                                                                      |   189    | 16 años                       |
+| ¿Durante cuánto tiempo se presume que un despido es por causa del embarazo?                                   |   178    | 7 meses y medio               |
 
 **Se niega, porque la ley no tiene el dato:**
 
@@ -249,19 +274,32 @@ contra Cohere. Sirven para ver cada comportamiento del sistema.
 
 ```
 📁 proyecto/
-├── 🌐 descargar_ley.py      Descarga y limpia el texto de la ley (se corre 1 vez)
-├── 📥 ingesta.py            Parte por artículo, arma metadata, carga ChromaDB (se corre 1 vez)
-├── 🐍 main.py               API: /health, /retrieve, /ask. Guardrail, caché, orquesta la respuesta
-├── 🧠 rag.py                Retrieval (búsqueda + filtros + reranking), prompt, generación
-├── 🧑‍⚖️ revisiones.py        Human in the Loop: criterios de riesgo y cola de revisión
-├── 📋 schemas.py            Contratos de entrada y salida (Pydantic)
-├── 🖥️ gui.py                Interfaz gráfica opcional (Streamlit), le pide a /ask
-├── 📄 ley/ley_20744.txt     El texto fuente, limpio (175.753 caracteres)
-├── 📊 eval/                 Dataset de 15 preguntas, script de evaluación y resultados
-├── 🧪 tests/                Pruebas automáticas (pytest), sin llamar a Cohere
-├── 📝 docs/                 Reporte de evaluación (HTML y Word)
-├── 📓 documento_proceso.md  Cómo armé el proyecto, decisiones y aprendizajes
-└── 🔐 .env                  Clave de Cohere (no versionado)
+├── 🐍 main.py                     Arma la API: logging, formato de errores y rutas
+├── 📦 app/
+│   ├── ⚙️ config.py                Modelos, umbrales y rutas, en un solo lugar
+│   ├── 🌐 api/
+│   │   └── routes.py              Endpoints: /health, /retrieve, /ask, /revisiones/...
+│   ├── 🧠 services/
+│   │   ├── rag_service.py         Guardrail, retrieval (búsqueda + filtros + reranking), prompt, generación
+│   │   ├── revision_service.py    Human in the Loop: criterios de riesgo y cola de revisión
+│   │   └── cache_service.py       Caché de respuestas (misma pregunta, misma respuesta)
+│   ├── 🔌 infrastructure/
+│   │   ├── llm.py                 Conexión con Cohere: embeddings, reranking y chat
+│   │   └── vector_store.py        Conexión con ChromaDB y búsqueda por vector
+│   └── 📋 schemas/
+│       ├── rag.py                 Entrada y salida de /ask y /retrieve (Pydantic)
+│       └── revisiones.py          Entrada y salida de los endpoints de revisión
+├── 🛠️ scripts/
+│   ├── descargar_ley.py           Descarga y limpia el texto de la ley (se corre 1 vez)
+│   └── ingesta.py                 Parte por artículo, arma metadata, carga ChromaDB (se corre 1 vez)
+├── 🖥️ gui/gui.py                  Interfaz gráfica opcional (Streamlit), le pide a /ask
+├── 📄 data/
+│   ├── ley_20744.txt              El texto fuente, limpio (175.753 caracteres)
+│   └── (chroma_data/, caché y revisiones: se generan con el uso, no versionados)
+├── 📊 eval/                       Dataset de 15 preguntas, script de evaluación y resultados
+├── 🧪 tests/                      Pruebas de punta a punta (pytest) contra Cohere real
+├── 📝 docs/documentacion.html     Decisiones técnicas, evaluación completa y aprendizajes
+└── 🔐 .env                        Clave de Cohere (no versionado)
 ```
 
 **Flujo de una consulta:**
@@ -299,11 +337,9 @@ pertinentes, cuáles responden la pregunta puntual.
 | Generación de respuestas           | `command-a-03-2025`       |
 | Reranking                          | `rerank-v4.0-fast`        |
 
-Los tres nombres están centralizados en constantes al inicio de `rag.py`
+Los tres nombres están centralizados en `app/config.py`
 (`MODELO_EMBEDDINGS`, `MODELO_CHAT`, `MODELO_RERANK`), no repartidos por el
-código. Cohere deprecó dos modelos durante el desarrollo de este mismo
-proyecto —`command-r-plus` en septiembre de 2025 y `rerank-v3.5` en julio de
-2026—, así que actualizar el nombre vigente es editar una sola línea.
+código.
 
 ---
 
@@ -381,7 +417,7 @@ similitud: es una mejora de calidad, no una dependencia crítica.
 ### Determinismo
 
 `temperature = 0` en la generación, más un caché de respuestas
-(`cache_respuestas.json`) indexado por la pregunta normalizada (sin tildes,
+(`data/cache_respuestas.json`) indexado por la pregunta normalizada (sin tildes,
 sin signos, sin mayúsculas). _"¿Cuántos días de vacaciones?"_ y _"cuantos
 dias de vacaciones"_ devuelven exactamente la misma respuesta, verificado.
 
@@ -399,14 +435,9 @@ caché sí.
 
 ### Validación de la salida
 
-Durante las pruebas, `command-a` devolvió dos veces una salida degenerada
-—la respuesta sobre horas extra se convirtió en miles de `3` seguidos— pese a
-`temperature = 0`. No se pudo reproducir a voluntad, así que no se puede
-evitar: hay que detectarla.
-
 - `max_tokens = 400`: una respuesta normal ocupa ~250; un bucle se corta antes
   de crecer.
-- Un detector de repetición (`es_degenerada()` en `rag.py`) revisa cada salida.
+- Un detector de repetición (`es_degenerada()` en `app/services/rag_service.py`) revisa cada salida.
   Si la detecta, reintenta una vez; si vuelve a fallar, responde `503` y **no
   guarda nada en el caché**. Es preferible un error honesto a una respuesta
   basura que además quedaría fija para siempre.
@@ -415,8 +446,8 @@ evitar: hay que detectarla.
 
 ## 📊 Evaluación
 
-**Reporte completo:** [`docs/reporte_evaluacion.html`](docs/reporte_evaluacion.html)
-(también en Word: `docs/reporte_evaluacion.docx`).
+**Evaluación completa** (dataset, métricas, pregunta por pregunta y lo que
+aprendí): [`docs/documentacion.html`](docs/documentacion.html#3-evaluación).
 
 ```bash
 python eval/evaluar.py     # ~57 llamadas a Cohere, unos 3 minutos
@@ -427,21 +458,21 @@ un dato específico, 2 sin respuesta en la ley, 1 fuera de tema y 2 que deben
 ir a revisión humana. Cada una con el artículo y los datos esperados,
 verificados contra el texto de la ley.
 
-| Qué se midió                                       | Solo embeddings | Con reranking |
-| -------------------------------------------------- | :-------------: | :-----------: |
-| Hit rate@3 (artículo correcto en el top 3)         |      0.909      |   **1.000**   |
-| MRR                                                |      0.909      |   **0.939**   |
+| Qué se midió                               | Solo embeddings | Con reranking |
+| ------------------------------------------ | :-------------: | :-----------: |
+| Hit rate@3 (artículo correcto en el top 3) |      0.909      |   **1.000**   |
+| MRR                                        |      0.909      |   **0.939**   |
 
-| Qué se midió                                              | Resultado            |
-| --------------------------------------------------------- | -------------------- |
-| Comportamiento esperado (responder / negarse / HITL)      | **15 de 15**         |
-| Dato clave y artículo citado (chequeo automático)         | 11 de 11             |
-| LLM-as-a-Judge: correcta / relevante / fundamentada (1-5) | 4.92 / 4.75 / 5.00   |
-| Revisión manual: sin frases fuera del contexto            | **12 de 12**         |
+| Qué se midió                                              | Resultado          |
+| --------------------------------------------------------- | ------------------ |
+| Comportamiento esperado (responder / negarse / HITL)      | **15 de 15**       |
+| Dato clave y artículo citado (chequeo automático)         | 11 de 11           |
+| LLM-as-a-Judge: correcta / relevante / fundamentada (1-5) | 4.92 / 4.75 / 5.00 |
+| Revisión manual: sin frases fuera del contexto            | **12 de 12**       |
 
 **Lo que se aprendió:**
 
-- **El reranker suma:** rescató el art. 189 en "¿a partir de qué edad se
+- **El reranker suma mucho:** rescató el art. 189 en "¿a partir de qué edad se
   puede trabajar?", que solo con embeddings no entraba en el top 3.
 - **Negarse bien depende del prompt:** en salario mínimo y licencia por
   mudanza los scores pasan los dos filtros; lo que evita inventar es la regla
@@ -480,11 +511,11 @@ IA analiza → evalúa si requiere supervisión → revisión humana → aprobar
 
 ### Qué hace la IA sola y qué requiere a una persona
 
-| La IA resuelve sola                                                      | Requiere revisión humana (`pending_approval`)                               |
-| ------------------------------------------------------------------------ | --------------------------------------------------------------------------- |
-| Respuestas con evidencia clara: la mejor fuente tiene rerank ≥ 0.50      | **Confianza baja:** la mejor fuente quedó entre 0.30 y 0.50                 |
-| Rechazar consultas fuera de tema o con lenguaje inapropiado              | **Artículo derogado** entre las fuentes finales de la respuesta             |
-| Decir "no cuento con información suficiente" (se niega: no hay riesgo)   | **Sin medida de confianza:** el reranker no respondió                        |
+| La IA resuelve sola                                                    | Requiere revisión humana (`pending_approval`)                   |
+| ---------------------------------------------------------------------- | --------------------------------------------------------------- |
+| Respuestas con evidencia clara: la mejor fuente tiene rerank ≥ 0.50    | **Confianza baja:** la mejor fuente quedó entre 0.30 y 0.50     |
+| Rechazar consultas fuera de tema o con lenguaje inapropiado            | **Artículo derogado** entre las fuentes finales de la respuesta |
+| Decir "no cuento con información suficiente" (se niega: no hay riesgo) | **Sin medida de confianza:** el reranker no respondió           |
 
 El criterio es la **calidad de la evidencia, no el tema**. Una consulta
 sobre despido o indemnización se responde sola si la ley la contesta con
@@ -507,10 +538,10 @@ económicas o legales con ella.
 
 ### Casos reales (reproducibles para la demo)
 
-| Consulta                               | Motivo                        | Qué encontró el revisor                                                                | Decisión     |
-| -------------------------------------- | ----------------------------- | -------------------------------------------------------------------------------------- | ------------ |
-| "qué dice la ley del trabajo nocturno" | `cita_articulo_derogado` (173) | La respuesta se apoya en los arts. 190 y 200, vigentes. El 173 no se usó               | ✅ Aprobar   |
-| "me pueden pagar con tickets de comida" | `confianza_baja` (0.49)       | Describe lo que dice el art. 131 sobre descuentos al sueldo, pero no responde la pregunta. Lo que dice que el salario se paga en dinero es el art. 105, y los beneficios sociales del 103 bis ni se recuperaron | ❌ Rechazar  |
+| Consulta                                | Motivo                         | Qué encontró el revisor                                                                                                                                                                                         | Decisión    |
+| --------------------------------------- | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| "qué dice la ley del trabajo nocturno"  | `cita_articulo_derogado` (173) | La respuesta se apoya en los arts. 190 y 200, vigentes. El 173 no se usó                                                                                                                                        | ✅ Aprobar  |
+| "me pueden pagar con tickets de comida" | `confianza_baja` (0.49)        | Describe lo que dice el art. 131 sobre descuentos al sueldo, pero no responde la pregunta. Lo que dice que el salario se paga en dinero es el art. 105, y los beneficios sociales del 103 bis ni se recuperaron | ❌ Rechazar |
 
 El segundo caso muestra por qué hace falta: la respuesta cita un artículo
 real y describe bien lo que dice, pero ese artículo no contesta lo que se
@@ -539,7 +570,7 @@ Reglas que cierran el circuito:
   de nuevo para que salga sola.
 - Una revisión resuelta no se puede volver a resolver (`409`).
 
-Las revisiones se guardan en `revisiones.json` (no versionado), así
+Las revisiones se guardan en `data/revisiones.json` (no versionado), así
 sobreviven a un reinicio de la API.
 
 ---
@@ -549,38 +580,29 @@ sobreviven a un reinicio de la API.
 ### Pruebas automáticas
 
 ```bash
-pytest -v
+pytest -v        # dice si cada prueba pasó o falló
+pytest -v -s     # además muestra la pregunta, las fuentes y la respuesta de cada caso
 ```
 
-28 pruebas de punta a punta sobre la API, en menos de un segundo. **No
-llaman a Cohere ni necesitan la base vectorial:** ambos se reemplazan por
-versiones falsas (`tests/conftest.py`) que responden lo que cada prueba
-necesita. Así no gastan llamadas de la API, dan siempre el mismo resultado,
-corren en cualquier computadora y permiten provocar casos difíciles de
-conseguir con el modelo real (Cohere caído, reranker caído, salida
-degenerada). Lo que se prueba es el código propio: filtros, umbrales, Human
-in the Loop, caché y manejo de errores.
+6 pruebas de punta a punta, una por cada caso que pide la consigna, contra
+el **sistema real**: Cohere de verdad y la base vectorial cargada. Nada
+simulado. Necesitan el `.env` con la clave y haber corrido la ingesta; si
+falta algo, se saltean con un aviso. Gastan unas 13 llamadas a Cohere y
+tardan unos 15 segundos. El caché y las revisiones de la prueba van a una
+carpeta temporal: no tocan `data/`.
 
-| Caso que pide la consigna      | Qué se prueba                                                                                         |
-| ------------------------------ | ----------------------------------------------------------------------------------------------------- |
-| Pregunta válida                | Responde con `estado: respondida`, `grounded: true` y aviso legal; la misma pregunta escrita distinto sale del caché |
-| Sin evidencia suficiente       | Fuera de tema corta antes del reranker y del LLM; si el reranker descarta todo, no se llama al LLM; si el modelo dice que no alcanza, `grounded: false` |
-| Recuperación de fuentes        | `/ask` devuelve las fuentes en el orden del reranker; `/retrieve` muestra los fragmentos sin llamar al LLM, filtra derogados por metadata y explica por qué algo no es pertinente |
-| Respuesta del LLM              | Se entrega el texto generado, sin emojis; una salida degenerada se reintenta                          |
-| Human in the Loop              | Derogado, confianza baja y reranker caído quedan en `pending_approval`; el usuario no ve el texto y el revisor sí; aprobar entrega y cachea; rechazar detiene y no regenera; una pregunta pendiente repetida no duplica la revisión |
-| Error controlado               | `422` (pregunta vacía, JSON roto, `top_k` fuera de rango, revisor sin nombre), `503` sin detalles internos si Cohere cae, `404` y `409` en revisiones |
+| Caso que pide la consigna | Pregunta                                  | Qué se verifica                                                                                                  |
+| ------------------------- | ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| Pregunta válida           | ¿Cuántos días de vacaciones con 8 años?   | `estado: respondida`, `grounded: true` y aviso legal                                                             |
+| Sin evidencia suficiente  | ¿Cuál es la capital de Francia?           | Responde que no corresponde a la ley, sin fuentes y `grounded: false`                                            |
+| Recuperación de fuentes   | ¿Durante cuánto tiempo se presume que un despido es por causa del embarazo? | Entre las fuentes está el art. 178, con título, capítulo y score                                   |
+| Respuesta del LLM         | ¿Cuándo se paga el aguinaldo?             | La respuesta dice "30 de junio" y "18 de diciembre" y cita el artículo 122                                      |
+| Human in the Loop         | ¿Qué dice la ley del trabajo nocturno?    | Queda en `pending_approval` por el art. 173 derogado, el usuario no ve el texto, el revisor sí, y al aprobarla se entrega |
+| Error controlado          | Pregunta vacía                            | `422` con el mensaje "La pregunta no puede estar vacía"                                                          |
 
-Para comprobar que las pruebas detectan fallas se rompió el código a
-propósito: con el umbral de HITL en 0.40 fallan 6 pruebas, y sin caché
-fallan 2.
-
-Hay además una prueba real contra Cohere, que no corre por defecto porque
-gasta llamadas:
-
-```bash
-PRUEBA_REAL=1 pytest -m real -v          # bash
-$env:PRUEBA_REAL=1; pytest -m real -v    # PowerShell
-```
+Como el modelo no responde siempre con las mismas palabras, no se compara
+el texto exacto: se verifica lo que tiene que ser fijo (estado, artículo,
+dato clave, código de error).
 
 ### Pruebas manuales contra Cohere
 
@@ -612,7 +634,7 @@ Probado end-to-end contra la API de Cohere con el texto completo de la ley carga
 - **Dependencia de modelos externos versionados.** Cohere deprecó
   `command-r-plus` en septiembre de 2025 y `rerank-v3.5` en julio de 2026
   durante el desarrollo de este mismo proyecto. Los tres modelos usados están
-  centralizados en constantes al inicio de `rag.py` para poder actualizarlos
+  centralizados en `app/config.py` para poder actualizarlos
   sin tocar el resto del código.
 - **Límites de la clave Trial de Cohere.** 1000 llamadas por mes, 20 por
   minuto al chat y 10 por minuto al reranker. Cada consulta nueva a `/ask`

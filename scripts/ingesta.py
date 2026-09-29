@@ -1,46 +1,34 @@
 """
-ingesta.py — Carga la ley en la base vectorial.
+ingesta.py — Carga la ley en la base vectorial. 📃📁
 
-Se corre UNA sola vez. Después la base queda en disco y la API solo lee.
-
-    python ingesta.py --verificar    parsea y muestra el reporte, SIN llamar a Cohere
-    python ingesta.py                parsea, genera embeddings y carga Chroma
-
-Conviene correr primero --verificar: si los artículos no salen bien,
-no tiene sentido gastar créditos de la API.
 """
 
 import os
 import re
 import sys
 
+RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, RAIZ)  # para poder importar app/ al correrlo como script
+
 import chromadb
 from chromadb.config import Settings
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(os.path.join(RAIZ, ".env"))
 
+from app.config import ARCHIVO_LEY as ARCHIVO, LEY, CARPETA_CHROMA, COLECCION
 
-ARCHIVO = "ley/ley_20744.txt"
-LEY = "20.744"
-
-CARPETA_CHROMA = "./chroma_data"
-COLECCION = "ley_laboral"
-
-MODELO_EMBEDDINGS = "embed-multilingual-v3.0"
-
-# Cohere admite hasta 96 textos por llamada. Usamos 90 por margen.
+# Cohere admite hasta 96 textos por llamada. Usamos 90 por margen. ✋
 LOTE = 90
 
 # Y hasta 512 tokens por texto (~2.000 caracteres). Si un artículo es
-# más largo, Cohere lo truncaría en silencio y perderíamos el final.
-# Por eso los partimos nosotros, con control.
+# más largo, Cohere lo corta y se pierde el final del texto.
 MAX_CHUNK = 1500
 SOLAPE = 150
 
 
 # ---------------------------------------------------------------------------
-# 1. Parseo: convertir el texto plano en artículos
+# ✍📃 1. Parseo: convertir el texto plano en artículos ✍📃
 # ---------------------------------------------------------------------------
 
 # "Artículo 1° — Fuentes", "Art. 2° — Ambito", "Art. 92 bis. — Período"
@@ -64,12 +52,12 @@ def _es_encabezado(linea):
 
 def parsear(texto):
     """
-    Recorre el texto y devuelve una lista de artículos.
+    Recorre el texto y devuelve una lista de artículos. ✍📃
 
     Cada artículo es un diccionario con su número, su texto completo
-    y a qué título y capítulo pertenece.
+    y a qué título y capítulo pertenece. ✍📃
 
-    La clave está en que el texto del artículo incluye SIEMPRE su nota
+    La clave esta en que el texto del artículo incluye SIEMPRE su nota
     de vigencia final —"(Artículo sustituido por...)" o "(Artículo
     derogado)"—, porque acumulamos hasta el siguiente encabezado.
     """
@@ -157,7 +145,7 @@ def _fusionar_repetidos(articulos):
     Pasa cuando una línea del cuerpo empieza con algo como
     "Artículo 11: Principios..." y el parser la confunde con un
     encabezado nuevo. Como el número es el mismo y vienen pegados,
-    se trata del mismo artículo partido en dos.
+    se trata del mismo artículo partido en dos. ✍📃🔟
     """
     if not articulos:
         return articulos
@@ -178,15 +166,15 @@ def _fusionar_repetidos(articulos):
 
 
 # ---------------------------------------------------------------------------
-# 2. Subdivisión de artículos largos
+# ✍📃 2. Subdivisión de artículos largos ✍📃
 # ---------------------------------------------------------------------------
 
 def partir_si_es_largo(articulo):
     """
-    Si el artículo supera el límite de Cohere, lo parte en trozos.
+    Si el artículo supera el límite de Cohere, lo parte en trozos. ✂📃
 
     Cada trozo arranca con el encabezado del artículo, para que
-    conserve el contexto aunque se lea suelto.
+    conserve el contexto aunque se lea suelto. ✂📃
     """
     texto = articulo["texto"]
 
@@ -227,7 +215,7 @@ def partir_si_es_largo(articulo):
 
 
 def armar_chunks(articulos):
-    """Convierte la lista de artículos en la lista de fragmentos a indexar."""
+    """📃Convierte la lista de artículos en la lista de fragmentos a indexar. 📃"""
     chunks = []
 
     for art in articulos:
@@ -261,7 +249,7 @@ def armar_chunks(articulos):
 
 
 # ---------------------------------------------------------------------------
-# 3. Reporte de verificación
+# ✍📃 3. Reporte de verificación ✍📃
 # ---------------------------------------------------------------------------
 
 def reportar(articulos, chunks):
@@ -280,9 +268,9 @@ def reportar(articulos, chunks):
     print(f"Articulos bis/ter:      {len(con_sufijo)} -> {con_sufijo[:8]}")
     print(f"Articulos derogados:    {len(derogados)} -> {derogados[:8]}")
 
-    # Un artículo puede aparecer dos veces si la ley lo menciona al
+    # ✍🎯 Un artículo puede aparecer dos veces si la ley lo menciona al
     # comienzo de una línea. No rompe nada (los ids son únicos), pero
-    # conviene saber cuáles son para revisarlos.
+    # conviene saber cuáles son para revisarlos. ✍🎯
     from collections import Counter
     repetidos = [a for a, n in Counter(x["articulo"] for x in articulos).items() if n > 1]
     print(f"Articulos repetidos:    {len(repetidos)} {repetidos if repetidos else ''}")
@@ -312,16 +300,12 @@ def reportar(articulos, chunks):
 
 
 # ---------------------------------------------------------------------------
-# 4. Carga en Chroma
+# 📁🚀 4. Carga en Chroma 📁🚀
 # ---------------------------------------------------------------------------
 
 def cargar_en_chroma(chunks):
-    import cohere
-
-    api_key = os.getenv("COHERE_API_KEY")
-    if not api_key:
-        raise RuntimeError("Falta COHERE_API_KEY en el archivo .env")
-    co = cohere.ClientV2(api_key=api_key)
+    # Se importa acá y no arriba: así --verificar funciona sin clave de Cohere
+    from app.infrastructure import llm
 
     cliente = chromadb.PersistentClient(
         path=CARPETA_CHROMA,
@@ -347,16 +331,11 @@ def cargar_en_chroma(chunks):
         lote = chunks[inicio:inicio + LOTE]
         textos = [c["texto"] for c in lote]
 
-        respuesta = co.embed(
-            texts=textos,
-            model=MODELO_EMBEDDINGS,
-            input_type="search_document",
-            embedding_types=["float"],
-        )
+        vectores = llm.embeber(textos, tipo="search_document")
 
         coleccion.add(
             ids=[c["id"] for c in lote],
-            embeddings=respuesta.embeddings.float,
+            embeddings=vectores,
             documents=textos,
             metadatas=[c["metadata"] for c in lote],
         )
@@ -374,7 +353,7 @@ def main():
     solo_verificar = "--verificar" in sys.argv
 
     if not os.path.exists(ARCHIVO):
-        raise SystemExit(f"No encuentro {ARCHIVO}. Corré primero descargar_ley.py")
+        raise SystemExit(f"No encuentro {ARCHIVO}. Corré primero: python scripts/descargar_ley.py")
 
     texto = open(ARCHIVO, encoding="utf-8").read()
     print(f"Leidos {len(texto):,} caracteres de {ARCHIVO}")
@@ -385,7 +364,7 @@ def main():
 
     if solo_verificar:
         print("Modo verificacion: no se llamo a Cohere ni se cargo nada.")
-        print("Si el reporte esta bien, corre:  python ingesta.py")
+        print("Si el reporte esta bien, corre:  python scripts/ingesta.py")
         return
 
     cargar_en_chroma(chunks)

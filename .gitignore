@@ -2,14 +2,15 @@
 .env
 
 # Base vectorial: son 317 embeddings binarios.
-# Se regenera con: python ingesta.py
-chroma_data/
+# Se regenera con: python scripts/ingesta.py
+data/chroma_data/
 
 # Cache de respuestas (se regenera solo con el uso)
-cache_respuestas.json
+data/cache_respuestas.json
 
-# HTML crudo de la descarga (solo sirve para depurar)
-ley/ley_20744_crudo.html
+# HTML crudo y reporte de la descarga (solo sirven para depurar)
+data/ley_20744_crudo.html
+data/reporte.txt
 
 # Entorno virtual
 venv/
@@ -31,9 +32,19 @@ Thumbs.db
 desktop.ini
 .DS_Store
 # Revisiones de Human in the Loop (se generan con el uso)
-revisiones.json
+data/revisiones.json
 
 # Notas personales (no son parte de la entrega)
 APUNTES.txt
+EVAL_Y_TESTS.txt
+CHUNKING_Y_UMBRALES.txt
+CAMPOS_DEL_JSON.txt
 ejemplos.txt
 GUION_DEMO.html
+SWAGGER_PASO_A_PASO.txt
+docs/documentacion.md
+Screenshot_*.png
+
+# Material que no es parte de la entrega
+Get_Talent_IA_Challenge_Final_2026.pdf
+*.pptx

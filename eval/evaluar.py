@@ -8,13 +8,13 @@ Evalúa tres cosas por separado:
   1. Retrieval: ¿se recuperó el artículo que responde la pregunta?
      Se compara solo embeddings contra embeddings + reranking.
   2. Comportamiento: ¿el sistema hizo lo que tenía que hacer? (responder,
-     negarse, cortar por fuera de tema o mandar a revisión humana)
+     negarse a responder, cortar por fuera de tema o mandar a revisión humana)
   3. Generación: ¿la respuesta es correcta, relevante y está respaldada
      por el contexto? Con un chequeo automático de datos clave y un
      LLM-as-a-Judge.
 
 No pasa por la API ni por el caché: llama directo a las funciones de
-rag.py, así cada corrida mide al sistema de verdad y no deja revisiones
+app/services/rag_service.py, así cada corrida mide al sistema de verdad y no deja revisiones
 ni respuestas guardadas.
 
 Guarda todo en eval/resultados.json.
@@ -30,15 +30,17 @@ import unicodedata
 from datetime import datetime
 
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-os.chdir(RAIZ)  # rag.py abre ./chroma_data con ruta relativa
+os.chdir(RAIZ)  # DATASET y SALIDA son rutas relativas a la raíz
 sys.path.insert(0, RAIZ)
 
 from dotenv import load_dotenv
 
 load_dotenv(os.path.join(RAIZ, ".env"))
 
-import rag
-import revisiones
+from app import config
+from app.infrastructure import llm
+from app.services import rag_service as rag
+from app.services import revision_service as revisiones
 
 logging.basicConfig(level=logging.WARNING, format="%(levelname)s | %(message)s")
 
@@ -102,16 +104,15 @@ def juzgar(pregunta, contexto, respuesta, datos_clave):
         f"RESPUESTA: {respuesta}\n\n"
         f"DATOS ESPERADOS: {esperados}"
     )
-    salida = rag.co.chat(
-        model=rag.MODELO_CHAT,
-        messages=[
+    salida = llm.chat(
+        [
             {"role": "system", "content": JUEZ},
             {"role": "user", "content": mensaje},
         ],
-        temperature=0,
+        0,
         response_format={"type": "json_object"},
     )
-    return json.loads(salida.message.content[0].text)
+    return json.loads(salida)
 
 
 # ---------------------------------------------------------------------------
@@ -128,7 +129,7 @@ def evaluar(caso):
     # --- 1. Retrieval: solo embeddings vs. embeddings + reranking ---
     # Una sola búsqueda: se usa para las dos variantes (ahorra llamadas)
     candidatos = rag.buscar(pregunta)
-    solo_embeddings = [a["articulo"] for a in candidatos[:rag.TOP_K]]
+    solo_embeddings = [a["articulo"] for a in candidatos[:config.TOP_K]]
     resultado = rag.recuperar(pregunta, candidatos=candidatos)
     finales = [a["articulo"] for a in resultado["fragmentos"]]
 
@@ -245,15 +246,15 @@ def main():
     salida = {
         "fecha": datetime.now().isoformat(timespec="seconds"),
         "configuracion": {
-            "modelo_embeddings": rag.MODELO_EMBEDDINGS,
-            "modelo_chat": rag.MODELO_CHAT,
-            "modelo_rerank": rag.MODELO_RERANK,
-            "modelo_juez": rag.MODELO_CHAT,
-            "top_k": rag.TOP_K,
-            "candidatos": rag.CANDIDATOS,
-            "umbral_similitud": rag.UMBRAL_SIMILITUD,
-            "umbral_rerank": rag.UMBRAL_RERANK,
-            "umbral_confianza_hitl": revisiones.UMBRAL_CONFIANZA,
+            "modelo_embeddings": config.MODELO_EMBEDDINGS,
+            "modelo_chat": config.MODELO_CHAT,
+            "modelo_rerank": config.MODELO_RERANK,
+            "modelo_juez": config.MODELO_CHAT,
+            "top_k": config.TOP_K,
+            "candidatos": config.CANDIDATOS,
+            "umbral_similitud": config.UMBRAL_SIMILITUD,
+            "umbral_rerank": config.UMBRAL_RERANK,
+            "umbral_confianza_hitl": config.UMBRAL_CONFIANZA,
         },
         "resumen": resumir(resultados),
         "resultados": resultados,

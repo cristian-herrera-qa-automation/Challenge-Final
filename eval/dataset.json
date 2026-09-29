@@ -2,7 +2,7 @@
   {
     "id": 1,
     "categoria": "respondible",
-    "pregunta": "¿Cuántos días de vacaciones me corresponden con 8 años de antigüedad?",
+    "pregunta": "cuantos dias de vacaciones me corresponden con 8 años de antigüedad?",
     "articulos_esperados": ["150"],
     "datos_clave": [["21 dias", "veintiun"]],
     "comportamiento_esperado": "responder",
@@ -11,7 +11,7 @@
   {
     "id": 2,
     "categoria": "respondible",
-    "pregunta": "¿Cuánto dura el período de prueba?",
+    "pregunta": "cuanto dura el período de prueba?",
     "articulos_esperados": ["92 bis"],
     "datos_clave": [["6 meses", "seis meses", "seis (6) meses"]],
     "comportamiento_esperado": "responder",
@@ -20,16 +20,19 @@
   {
     "id": 3,
     "categoria": "respondible",
-    "pregunta": "¿Cuánto se paga la hora extra?",
+    "pregunta": "cuanto se paga la hora extra?",
     "articulos_esperados": ["201"],
-    "datos_clave": [["50%", "cincuenta por ciento"], ["100%", "ciento por ciento"]],
+    "datos_clave": [
+      ["50%", "cincuenta por ciento"],
+      ["100%", "ciento por ciento"]
+    ],
     "comportamiento_esperado": "responder",
     "nota": "La ley dice 'horas suplementarias', no 'hora extra'."
   },
   {
     "id": 4,
     "categoria": "respondible",
-    "pregunta": "¿Cuántos días de licencia me dan por casamiento?",
+    "pregunta": "cuantos días de licencia me dan por casamiento?",
     "articulos_esperados": ["158"],
     "datos_clave": [["10 dias", "diez dias", "diez (10) dias"]],
     "comportamiento_esperado": "responder",
@@ -38,7 +41,7 @@
   {
     "id": 5,
     "categoria": "respondible",
-    "pregunta": "¿Cuándo se paga el aguinaldo?",
+    "pregunta": "cuando se paga el aguinaldo?",
     "articulos_esperados": ["122"],
     "datos_clave": [["30 de junio"], ["18 de diciembre"]],
     "comportamiento_esperado": "responder",
@@ -47,7 +50,7 @@
   {
     "id": 6,
     "categoria": "especifica",
-    "pregunta": "Si tengo 3 años de antigüedad, ¿con cuánta anticipación me tiene que avisar el empleador antes de despedirme?",
+    "pregunta": "Si tengo 3 años de antigüedad, con cuánta anticipación me tiene que avisar el empleador antes de despedirme?",
     "articulos_esperados": ["231"],
     "datos_clave": [["un mes", "1 mes", "un (1) mes"]],
     "comportamiento_esperado": "responder",
@@ -56,7 +59,7 @@
   {
     "id": 7,
     "categoria": "especifica",
-    "pregunta": "¿Cuántos días de licencia corresponden por el fallecimiento de un hermano?",
+    "pregunta": "cuantos días de licencia corresponden por el fallecimiento de un hermano?",
     "articulos_esperados": ["158"],
     "datos_clave": [["un dia", "1 dia", "un (1) dia"]],
     "comportamiento_esperado": "responder",
@@ -65,7 +68,7 @@
   {
     "id": 8,
     "categoria": "especifica",
-    "pregunta": "¿Cuántas horas puede durar como máximo una jornada íntegramente nocturna?",
+    "pregunta": "cuantas horas puede durar como máximo una jornada integramente nocturna?",
     "articulos_esperados": ["200"],
     "datos_clave": [["7 horas", "siete horas", "siete (7) horas"]],
     "comportamiento_esperado": "responder",
@@ -74,7 +77,7 @@
   {
     "id": 9,
     "categoria": "especifica",
-    "pregunta": "¿A partir de qué edad se puede trabajar?",
+    "pregunta": "A partir de que edad se puede trabajar?",
     "articulos_esperados": ["189"],
     "datos_clave": [["16 anos", "dieciseis"]],
     "comportamiento_esperado": "responder",
@@ -83,16 +86,25 @@
   {
     "id": 10,
     "categoria": "especifica",
-    "pregunta": "¿Durante cuánto tiempo se presume que un despido es por causa del embarazo?",
+    "pregunta": "Durante cuanto tiempo se presume que un despido es por causa de un embarazo?",
     "articulos_esperados": ["178"],
-    "datos_clave": [["7 y medio", "siete y medio", "7 y 1/2", "7,5", "siete meses y medio", "7 meses y medio"]],
+    "datos_clave": [
+      [
+        "7 y medio",
+        "siete y medio",
+        "7 y 1/2",
+        "7,5",
+        "siete meses y medio",
+        "7 meses y medio"
+      ]
+    ],
     "comportamiento_esperado": "responder",
     "nota": "Plazo antes o después del parto."
   },
   {
     "id": 11,
     "categoria": "sin_respuesta",
-    "pregunta": "¿Cuál es el monto actual del salario mínimo vital y móvil?",
+    "pregunta": "cual es el monto actual del salario mínimo vital y móvil?",
     "articulos_esperados": [],
     "datos_clave": [],
     "comportamiento_esperado": "no_responder",
@@ -101,7 +113,7 @@
   {
     "id": 12,
     "categoria": "sin_respuesta",
-    "pregunta": "¿Cuántos días de licencia me corresponden por mudanza?",
+    "pregunta": "cuantos dias de licencia me corresponden por mudanza?",
     "articulos_esperados": [],
     "datos_clave": [],
     "comportamiento_esperado": "no_responder",
@@ -110,7 +122,7 @@
   {
     "id": 13,
     "categoria": "fuera_de_tema",
-    "pregunta": "¿Cuál es la capital de Francia?",
+    "pregunta": "cual es la capital de Francia?",
     "articulos_esperados": [],
     "datos_clave": [],
     "comportamiento_esperado": "fuera_de_tema",
@@ -133,5 +145,23 @@
     "datos_clave": [],
     "comportamiento_esperado": "revision",
     "nota": "Evidencia débil (rerank < 0.50): tiene que quedar en revisión humana."
+  },
+  {
+    "id": 16,
+    "categoria": "fuera_de_tema",
+    "pregunta": "como hago una tarta de manzana",
+    "articulos_esperados": [],
+    "datos_clave": [],
+    "comportamiento_esperado": "fuera_de_tema",
+    "nota": "Tiene que cortar antes de llamar al modelo generativo."
+  },
+  {
+    "id": 17,
+    "categoria": "fuera_de_tema",
+    "pregunta": "cuantos balones de oro tiene Messi",
+    "articulos_esperados": [],
+    "datos_clave": [],
+    "comportamiento_esperado": "fuera_de_tema",
+    "nota": "Tiene que cortar antes de llamar al modelo generativo."
   }
 ]

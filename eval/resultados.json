@@ -1,5 +1,5 @@
 {
-  "fecha": "2026-09-24T12:41:06",
+  "fecha": "2026-09-26T13:44:12",
   "configuracion": {
     "modelo_embeddings": "embed-multilingual-v3.0",
     "modelo_chat": "command-a-03-2025",
@@ -12,7 +12,7 @@
     "umbral_confianza_hitl": 0.5
   },
   "resumen": {
-    "preguntas": 15,
+    "preguntas": 17,
     "retrieval": {
       "solo_embeddings": {
         "preguntas_evaluadas": 11,
@@ -27,12 +27,12 @@
         "mrr": 0.939
       }
     },
-    "comportamiento_correcto": "15/15",
+    "comportamiento_correcto": "17/17",
     "juez": {
       "respuestas_juzgadas": 12,
-      "correcta": 4.917,
-      "relevante": 4.75,
-      "fundamentada": 5.0
+      "correcta": 4.833,
+      "relevante": 4.667,
+      "fundamentada": 4.917
     },
     "datos_clave_presentes": 1.0,
     "cita_articulo_esperado": 1.0
@@ -110,11 +110,11 @@
           "150",
           "214"
         ],
-        "similarity_score": 0.7002,
+        "similarity_score": 0.7003,
         "scores_rerank": [
-          0.8454,
+          0.8447,
           0.5308,
-          0.5289
+          0.5269
         ],
         "derogados": [],
         "motivo": "ok",
@@ -270,11 +270,11 @@
           "130",
           "126"
         ],
-        "similarity_score": 0.6405,
+        "similarity_score": 0.6401,
         "scores_rerank": [
-          0.5367,
+          0.5347,
           0.4762,
-          0.4703
+          0.4684
         ],
         "derogados": [],
         "motivo": "ok",
@@ -343,7 +343,7 @@
           "rr": 1.0
         }
       },
-      "respuesta": "Según el artículo 231, el empleador debe dar un preaviso de un mes si el trabajador tiene una antigüedad en el empleo que no exceda de cinco años.\n\nEl preaviso es una comunicación que debe hacer el empleador al trabajador para informarle que va a disolver el contrato de trabajo. Este plazo es de un mes para los trabajadores con una antigüedad de hasta cinco años, y de dos meses para aquellos con más antigüedad.",
+      "respuesta": "Según el artículo 231, el empleador debe dar un preaviso de un mes cuando el trabajador tiene una antigüedad en el empleo que no exceda de cinco años.\n\nEl preaviso es una comunicación que debe hacer el empleador al trabajador para informarle que se va a disolver el contrato de trabajo. Este plazo es de un mes para trabajadores con hasta cinco años de antigüedad, y de dos meses cuando la antigüedad es superior.",
       "motivos_revision": [],
       "comportamiento": "responder",
       "datos_clave": [
@@ -377,7 +377,7 @@
           "150",
           "194"
         ],
-        "similarity_score": 0.6854,
+        "similarity_score": 0.6856,
         "scores_rerank": [
           0.8882,
           0.4996,
@@ -396,7 +396,7 @@
           "rr": 1.0
         }
       },
-      "respuesta": "Según el artículo 158, inciso d), corresponden un (1) día de licencia por el fallecimiento de un hermano.",
+      "respuesta": "Según el artículo 158, inciso d), corresponden un (1) día de licencia por el fallecimiento de un hermano.\n\nEl artículo no especifica condiciones adicionales para acceder a esta licencia.",
       "motivos_revision": [],
       "comportamiento": "responder",
       "datos_clave": [
@@ -449,7 +449,7 @@
           "rr": 1.0
         }
       },
-      "respuesta": "Según el artículo 200, la jornada de trabajo íntegramente nocturna no podrá exceder de siete (7) horas.\n\nSe entiende por jornada nocturna la que se cumple entre las 21:00 de un día y las 6:00 del siguiente. Esta limitación no aplica cuando se apliquen horarios rotativos del régimen de trabajo por equipos.",
+      "respuesta": "Según el artículo 200, la jornada de trabajo íntegramente nocturna no podrá exceder de siete (7) horas.\n\nSe entiende por trabajo nocturno el que se cumple entre las 21 horas de un día y las 6 horas del día siguiente. Esta limitación no aplica cuando se apliquen horarios rotativos en el régimen de trabajo por equipos.",
       "motivos_revision": [],
       "comportamiento": "responder",
       "datos_clave": [
@@ -460,7 +460,7 @@
         "correcta": 5,
         "relevante": 5,
         "fundamentada": 5,
-        "comentario": "La respuesta es correcta, relevante y fundamentada, ya que cita directamente el artículo 200 y proporciona la información solicitada sin desviarse del tema."
+        "comentario": "La respuesta es correcta, relevante y fundamentada, ya que cita directamente el artículo 200 y proporciona la información solicitada sin inventar datos."
       },
       "comportamiento_ok": true
     },
@@ -483,11 +483,11 @@
           "187",
           "189"
         ],
-        "similarity_score": 0.708,
+        "similarity_score": 0.7081,
         "scores_rerank": [
-          0.8897,
-          0.8702,
-          0.8596
+          0.8904,
+          0.8699,
+          0.8603
         ],
         "derogados": [],
         "motivo": "ok",
@@ -502,7 +502,7 @@
           "rr": 0.333
         }
       },
-      "respuesta": "Según el artículo 189, queda prohibido a los empleadores ocupar personas menores de 16 años en cualquier tipo de actividad, persiga o no fines de lucro.\n\nEl artículo 189 bis establece una excepción para empresas cuyo titular sea el padre, madre o tutor del menor, en cuyo caso se permite ocupar a personas mayores de 14 años y menores de 16, con jornadas limitadas a 3 horas diarias y 15 horas semanales, siempre que no se trate de tareas penosas, peligrosas o insalubres, y que el menor cumpla con la asistencia escolar.",
+      "respuesta": "Según el artículo 189, queda prohibido a los empleadores ocupar personas menores de 16 años en cualquier tipo de actividad, persiga o no fines de lucro.\n\nSin embargo, el artículo 189 bis establece una excepción para las empresas familiares, permitiendo que personas mayores de 14 años y menores de 16 puedan trabajar en empresas cuyo titular sea su padre, madre o tutor, con ciertas condiciones: jornadas no superiores a 3 horas diarias y 15 horas semanales, que no se trate de tareas penosas, peligrosas o insalubres, y que cumplan con la asistencia escolar.",
       "motivos_revision": [],
       "comportamiento": "responder",
       "datos_clave": [
@@ -513,7 +513,7 @@
         "correcta": 4,
         "relevante": 3,
         "fundamentada": 5,
-        "comentario": "La respuesta es parcialmente relevante porque, aunque menciona la edad mínima de 16 años, no destaca claramente que esa es la edad a partir de la cual se puede trabajar en general, y se extiende en detalles sobre una excepción que no es el foco principal de la pregunta."
+        "comentario": "La respuesta es parcialmente relevante porque, aunque menciona la edad mínima de 16 años, no destaca claramente que esa es la edad a partir de la cual se puede trabajar en general, y se extiende en detalles sobre la excepción familiar que no son el foco principal de la pregunta."
       },
       "comportamiento_ok": true
     },
@@ -555,7 +555,7 @@
           "rr": 1.0
         }
       },
-      "respuesta": "Según el artículo 178, se presume que el despido de una mujer trabajadora obedece a razones de maternidad o embarazo cuando se produce dentro de los siete meses y medio anteriores o posteriores a la fecha del parto.\n\nEsta presunción aplica siempre que la trabajadora haya cumplido con su obligación de notificar y acreditar el embarazo y, en su caso, el nacimiento.",
+      "respuesta": "Según el artículo 178, se presume que el despido de una mujer trabajadora obedece a razones de maternidad o embarazo cuando se dispone dentro del plazo de siete meses y medio anteriores o posteriores a la fecha del parto.\n\nLa trabajadora debe haber cumplido con su obligación de notificar y acreditar el embarazo y, en su caso, el nacimiento. Si se cumplen estas condiciones, el despido da lugar al pago de una indemnización igual a la prevista en el artículo 182 de la Ley de Contrato de Trabajo.",
       "motivos_revision": [],
       "comportamiento": "responder",
       "datos_clave": [
@@ -566,7 +566,7 @@
         "correcta": 5,
         "relevante": 5,
         "fundamentada": 5,
-        "comentario": "La respuesta es correcta, relevante y fundamentada en el artículo 178 de la Ley 20.744."
+        "comentario": "La respuesta es correcta, relevante y fundamentada, ya que cita directamente el artículo 178 y proporciona la información solicitada de manera precisa."
       },
       "comportamiento_ok": true
     },
@@ -589,9 +589,9 @@
         ],
         "similarity_score": 0.6904,
         "scores_rerank": [
-          0.6403,
-          0.6312,
-          0.5386
+          0.6439,
+          0.633,
+          0.5405
         ],
         "derogados": [],
         "motivo": "ok"
@@ -678,7 +678,7 @@
           "200",
           "173"
         ],
-        "similarity_score": 0.714,
+        "similarity_score": 0.7142,
         "scores_rerank": [
           0.8433,
           0.8259,
@@ -699,7 +699,7 @@
           "rr": 1.0
         }
       },
-      "respuesta": "La ley establece que la jornada de trabajo íntegramente nocturna no puede superar las siete horas, considerando como horario nocturno el comprendido entre las 21:00 y las 6:00 del día siguiente (artículo 200).\n\nEn caso de alternar horas diurnas con nocturnas, la jornada se reduce en ocho minutos por cada hora nocturna trabajada, o bien se pagan esos ocho minutos como tiempo suplementario. Además, el artículo 190 prohíbe el trabajo nocturno para menores de 18 años, con algunas excepciones para mayores de 16 en establecimientos fabriles con turnos rotativos.",
+      "respuesta": "La ley establece que la jornada de trabajo íntegramente nocturna no puede superar las siete horas, según el artículo 200.\n\nSe considera trabajo nocturno el realizado entre las 21:00 y las 6:00 del día siguiente. Si se alternan horas diurnas con nocturnas, se debe reducir la jornada en 8 minutos por cada hora nocturna trabajada o pagar esos 8 minutos como tiempo suplementario.\n\nAdemás, el artículo 190 prohíbe el trabajo nocturno para menores de 18 años, definiéndolo como el intervalo entre las 20:00 y las 6:00 del día siguiente. En establecimientos fabriles con tres turnos diarios, la prohibición se extiende de 22:00 a 6:00, pero solo para menores de más de 16 años.",
       "motivos_revision": [
         "cita_articulo_derogado"
       ],
@@ -733,7 +733,7 @@
           "106",
           "105"
         ],
-        "similarity_score": 0.5111,
+        "similarity_score": 0.5106,
         "scores_rerank": [
           0.4938,
           0.4587,
@@ -742,7 +742,7 @@
         "derogados": [],
         "motivo": "ok"
       },
-      "respuesta": "Según el artículo 131, no se puede deducir, retener o compensar suma alguna que rebaje el monto de las remuneraciones. Esto incluye la prohibición de descuentos, retenciones o compensaciones por entrega de mercaderías, provisión de alimentos, vivienda o alojamiento, entre otras prestaciones en dinero o en especie.",
+      "respuesta": "Según el artículo 131, no se puede deducir, retener o compensar suma alguna que rebaje el monto de las remuneraciones. Esto incluye la prohibición de descuentos, retenciones o compensaciones por entrega de mercaderías, provisión de alimentos, vivienda o alojamiento, entre otras prestaciones en dinero o en especie.\n\nEl artículo no menciona específicamente los tickets de comida, pero establece que no se pueden realizar deducciones o compensaciones por la provisión de alimentos.",
       "motivos_revision": [
         "confianza_baja"
       ],
@@ -750,11 +750,67 @@
       "datos_clave": [],
       "cita_articulo_esperado": null,
       "juez": {
-        "correcta": 5,
-        "relevante": 4,
-        "fundamentada": 5,
-        "comentario": "La respuesta es parcialmente relevante porque, aunque cita correctamente el artículo 131, no menciona explícitamente los 'tickets de comida' como forma prohibida de pago, aunque se infiere de la prohibición de prestaciones en especie."
+        "correcta": 4,
+        "relevante": 3,
+        "fundamentada": 4,
+        "comentario": "La respuesta es parcialmente relevante porque no aborda directamente la pregunta sobre el pago con tickets de comida, sino que se enfoca en la prohibición de deducciones por provisión de alimentos."
       },
+      "comportamiento_ok": true
+    },
+    {
+      "id": 16,
+      "categoria": "fuera_de_tema",
+      "pregunta": "como hago una tarta de manzana",
+      "articulos_esperados": [],
+      "comportamiento_esperado": "fuera_de_tema",
+      "retrieval": {
+        "solo_embeddings": [
+          "244",
+          "139",
+          "104"
+        ],
+        "con_rerank": [],
+        "similarity_score": 0.3502,
+        "scores_rerank": [
+          null,
+          null,
+          null
+        ],
+        "derogados": [],
+        "motivo": "similitud_bajo_umbral"
+      },
+      "respuesta": null,
+      "comportamiento": "fuera_de_tema",
+      "comportamiento_ok": true
+    },
+    {
+      "id": 17,
+      "categoria": "fuera_de_tema",
+      "pregunta": "cuantos balones de oro tiene Messi",
+      "articulos_esperados": [],
+      "comportamiento_esperado": "fuera_de_tema",
+      "retrieval": {
+        "solo_embeddings": [
+          "61",
+          "266",
+          "175"
+        ],
+        "con_rerank": [],
+        "similarity_score": 0.3937,
+        "scores_rerank": [
+          null,
+          null,
+          null
+        ],
+        "derogados": [
+          "61",
+          "266",
+          "175"
+        ],
+        "motivo": "similitud_bajo_umbral"
+      },
+      "respuesta": null,
+      "comportamiento": "fuera_de_tema",
       "comportamiento_ok": true
     }
   ]

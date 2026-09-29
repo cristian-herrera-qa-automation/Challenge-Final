@@ -1,8 +1,8 @@
 """
-schemas.py — Forma de los datos que entran y salen de la API.
+✅📃Normaliza los datos que entran y salen de la API.
 
 FastAPI valida automáticamente con estas clases: una consulta vacía
-ni siquiera llega al endpoint.
+ni siquiera llega al endpoint. ✅📃
 """
 
 from typing import List, Literal, Optional
@@ -23,7 +23,7 @@ class PreguntaRequest(BaseModel):
     @field_validator("pregunta")
     @classmethod
     def sin_espacios_vacios(cls, valor):
-        # min_length=1 no alcanza: "   " tiene largo 3 pero está vacío.
+        # min_length=1 no alcanza: "   " tiene largo 3 pero está vacío. ✋
         limpio = valor.strip()
         if not limpio:
             raise ValueError("La pregunta no puede estar vacía")
@@ -44,11 +44,11 @@ class RetrieveRequest(PreguntaRequest):
 
 class Fuente(BaseModel):
     """
-    Un artículo que el sistema usó para responder.
+    Un artículo que el sistema usó para responder. 📃
 
-    Hay dos scores y NO son comparables entre sí:
-      - score: similitud de embeddings (qué tan parecido es el texto)
-      - score_rerank: relevancia según el reranker (si responde la consulta)
+    Hay dos scores y NO son comparables entre sí: 🎯
+      - score: similitud de embeddings (que tan parecido es el texto)
+      - score_rerank: relevancia segun el reranker (si responde la consulta)
     """
     articulo: str
     titulo: str
@@ -65,7 +65,7 @@ class Fragmento(Fuente):
 
 class RetrieveResponse(BaseModel):
     """
-    Resultado del retrieval, sin generación.
+    Resultado del retrieval.
 
     Si pertinente es false, los fragmentos son los mejores candidatos
     igual, para poder ver por qué no alcanzaron los umbrales.
@@ -88,10 +88,10 @@ class AskResponse(BaseModel):
     Respuesta del asistente.
 
     Los campos de transparencia (fuentes, similarity_score, grounded,
-    aviso) van SIEMPRE, haya respuesta o no.
+    aviso) van SIEMPRE, haya respuesta o no ante una consulta. ✅
 
     Si estado es pending_approval, "respuesta" NO trae el texto generado:
-    trae cómo seguir la revisión con id_revision.
+    trae cómo seguir la revisión con id_revision. ✅🧪
     """
     pregunta: str
     estado: Literal["respondida", "pending_approval", "rechazada"] = Field(
@@ -116,44 +116,6 @@ class AskResponse(BaseModel):
         False, description="Si la respuesta se reutilizó de una consulta anterior"
     )
     aviso: str
-
-
-class ResolucionRequest(BaseModel):
-    """POST /revisiones/{id}/aprobar y /rechazar"""
-    revisor: str = Field(
-        ..., min_length=1, max_length=100,
-        description="Quién toma la decisión (queda registrado)",
-        examples=["Dra. Pérez"],
-    )
-    comentario: Optional[str] = Field(
-        None, max_length=500,
-        examples=["El art. 173 está derogado: no aplica."],
-    )
-
-
-class RevisionPendiente(BaseModel):
-    """Lo que ve el revisor: incluye la respuesta propuesta por la IA."""
-    id: str
-    pregunta: str
-    motivos: List[str]
-    propuesta: AskResponse
-    creada: str
-
-
-class EstadoRevision(BaseModel):
-    """
-    Lo que ve el usuario. La respuesta solo aparece si fue aprobada:
-    mientras está pendiente, el texto generado no sale de la API.
-    """
-    id: str
-    estado: Literal["pendiente", "aprobada", "rechazada"]
-    pregunta: str
-    motivos: List[str]
-    respuesta: Optional[AskResponse] = None
-    revisor: Optional[str] = None
-    comentario: Optional[str] = None
-    creada: str
-    resuelta: Optional[str] = None
 
 
 class ErrorResponse(BaseModel):

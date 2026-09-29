@@ -1,15 +1,16 @@
 """
-revisiones.py — Human in the Loop: respuestas que un humano debe aprobar.
+revision_service.py — Human in the Loop: respuestas que un humano debe aprobar. 👨‍💻✋
 
-La IA responde sola cuando la evidencia es clara. Cuando no lo es, la
-respuesta se genera pero NO se entrega: queda en estado pendiente hasta
+La IA responde sola cuando la evidencia es clara. ✅ Cuando no lo es, la
+respuesta se genera pero NO se entrega: ✋ queda en estado pendiente hasta
 que un revisor la aprueba o la rechaza.
 
     IA analiza -> evalúa si requiere supervisión -> revisión humana
-               -> aprobar (se entrega) o rechazar (se detiene)
+               -> aprobar (se entrega) 👍 o rechazar (se detiene) 🚨
+
 
 Las revisiones se guardan en un archivo JSON, igual que el caché, para
-que sobrevivan a un reinicio de la API durante la demo.
+que sobrevivan a un reinicio de la API.
 """
 
 import json
@@ -17,21 +18,14 @@ import uuid
 import logging
 from datetime import datetime
 
+from app.config import UMBRAL_CONFIANZA, ARCHIVO_REVISIONES
+
 logger = logging.getLogger("asistente_laboral")
 
 
 # ---------------------------------------------------------------------------
 # Criterios de riesgo
 # ---------------------------------------------------------------------------
-
-# Por debajo de este score de rerank, la mejor fuente no alcanza para
-# confiar en la respuesta sin que la mire una persona.
-# Calibración: las consultas pertinentes medidas dieron 0.57 a 0.91, y
-# las ajenas 0.09 a 0.11. Lo que queda entre UMBRAL_RERANK (0.30) y 0.50
-# es zona gris: pasa el filtro, pero ninguna medición la respalda.
-# Casos reales en esa zona: "trabajo en negro que hago" (0.48), "que es
-# el acoso laboral" (0.46), "licencia por mudanza" (0.43).
-UMBRAL_CONFIANZA = 0.50
 
 MOTIVO_DEROGADO = "cita_articulo_derogado"
 MOTIVO_CONFIANZA_BAJA = "confianza_baja"
@@ -41,10 +35,10 @@ MOTIVO_SIN_RERANK = "confianza_no_medida"
 def evaluar_riesgo(fuentes):
     """
     Devuelve la lista de motivos por los que la respuesta necesita
-    revisión humana. Lista vacía = se puede entregar automáticamente.
+    revisión humana. 📃👨‍💻 Lista vacía = se puede entregar automáticamente.
 
     Recibe las fuentes finales, las que pasaron los dos filtros: un
-    artículo derogado que quedó descartado no afecta la respuesta.
+    artículo derogado que quedó descartado no afecta la respuesta. 📃
     """
     motivos = []
 
@@ -65,7 +59,7 @@ def evaluar_riesgo(fuentes):
 # Almacenamiento
 # ---------------------------------------------------------------------------
 
-ARCHIVO = "revisiones.json"
+ARCHIVO = ARCHIVO_REVISIONES
 
 PENDIENTE = "pendiente"
 APROBADA = "aprobada"
@@ -100,7 +94,7 @@ def _ahora():
 # ---------------------------------------------------------------------------
 
 def crear(clave, pregunta, propuesta, motivos):
-    """Registra una respuesta que espera revisión y devuelve su id."""
+    """🧪🎯Registra una respuesta que espera revisión y devuelve su id.🧪🎯"""
     id_revision = uuid.uuid4().hex[:8]
     revisiones[id_revision] = {
         "id": id_revision,
@@ -127,7 +121,7 @@ def buscar_por_clave(clave):
     La revisión más reciente de esta misma pregunta, si existe.
 
     Evita que preguntar lo mismo dos veces genere dos revisiones, y que
-    una respuesta rechazada se vuelva a generar y se entregue sola.
+    una respuesta rechazada se vuelva a generar y se entregue sola.🔑📁
     """
     candidatas = [r for r in revisiones.values() if r["clave"] == clave]
     return max(candidatas, key=lambda r: r["creada"], default=None)
@@ -138,7 +132,8 @@ def pendientes():
 
 
 def resolver(id_revision, aprobada, revisor, comentario=None):
-    """Aprueba o rechaza. Devuelve la revisión actualizada."""
+    """🚨✅👨‍💻Aprueba o rechaza. Devuelve la revisión actualizada.🚨✅👨‍💻"""
+    
     revision = revisiones[id_revision]
     revision["estado"] = APROBADA if aprobada else RECHAZADA
     revision["revisor"] = revisor

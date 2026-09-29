@@ -1,85 +1,24 @@
 """
-rag.py — Lógica del asistente sobre la Ley de Contrato de Trabajo.
+rag_service.py — Lógica del asistente sobre la Ley de Contrato de Trabajo.
 
-Este archivo NO carga documentos: eso lo hizo ingesta.py una sola vez.
-Acá solo se consulta la base vectorial que ya está en disco.
+Guardrail, retrieval (búsqueda + filtros + reranking), armado del
+contexto, prompt y generación de la respuesta.
+
 """
 
-import os
 import re
 import logging
 
-import cohere
-import chromadb
-from chromadb.config import Settings
+from app.config import (
+    CANDIDATOS, TOP_K, UMBRAL_SIMILITUD, UMBRAL_RERANK, TEMPERATURA,
+)
+from app.infrastructure import llm, vector_store
 
 logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
-# Configuración
-# ---------------------------------------------------------------------------
-
-MODELO_EMBEDDINGS = "embed-multilingual-v3.0"
-MODELO_CHAT = "command-a-03-2025"
-MODELO_RERANK = "rerank-v4.0-fast"
-
-# Cuántos artículos se recuperan por similitud antes de reordenar.
-# Se pide de más a propósito: el embedding no siempre deja el artículo
-# correcto arriba (caso real: en "período de prueba" entraba el art. 50,
-# que trata la prueba del contrato). Con 10 candidatos el reranker
-# tiene margen para reordenar.
-CANDIDATOS = 10
-
-# Cuántos quedan finalmente como contexto para el modelo.
-# Las consultas típicas se responden con 1 artículo, o con 2 que se
-# remiten entre sí (ej. 92 bis y 231). Más contexto aumenta el riesgo
-# de que el modelo cite artículos que no responden la consulta.
-TOP_K = 3
-
-# Umbral de pertinencia sobre la similitud de embeddings.
-# Filtro barato: decide si la consulta es sobre la ley, antes de
-# gastar una llamada al reranker.
-# Medido: consultas pertinentes 0.56 a 0.72, ajenas 0.33 a 0.34.
-UMBRAL_SIMILITUD = 0.45
-
-# Umbral sobre el score del reranker. Es OTRA escala, no comparable
-# con la de arriba.
-# Medido: artículos pertinentes 0.57 a 0.91, consultas ajenas 0.09 a 0.11.
-UMBRAL_RERANK = 0.30
-
-# temperature=0 es lo que hace la respuesta reproducible.
-TEMPERATURA = 0.0
-
-CARPETA_CHROMA = "./chroma_data"
-COLECCION = "ley_laboral"
-
-
-def _crear_cliente_cohere():
-    api_key = os.getenv("COHERE_API_KEY")
-    if not api_key:
-        raise RuntimeError("Falta COHERE_API_KEY en el archivo .env")
-    return cohere.ClientV2(api_key=api_key)
-
-
-co = _crear_cliente_cohere()
-
-chroma_client = chromadb.PersistentClient(
-    path=CARPETA_CHROMA,
-    settings=Settings(anonymized_telemetry=False),
-)
-
-try:
-    coleccion = chroma_client.get_collection(name=COLECCION)
-except Exception:
-    raise RuntimeError(
-        f"No existe la colección '{COLECCION}' en {CARPETA_CHROMA}.\n"
-        "Corré primero:  python ingesta.py"
-    )
-
-
-# ---------------------------------------------------------------------------
-# 1. Guardrail de lenguaje
+# 🚨🚨1. Guardrail de lenguaje 🚨🚨
 # ---------------------------------------------------------------------------
 
 PALABRAS_BLOQUEADAS = {
@@ -90,7 +29,7 @@ PALABRAS_BLOQUEADAS = {
 
 def contiene_lenguaje_inapropiado(texto):
     """
-    True si la consulta trae lenguaje bloqueado.
+    True si la consulta trae lenguaje bloqueado. 🚨✋
 
     Usa \\b (límite de palabra) para no marcar "custodio" por contener
     "odio", ni "inferior" dentro de "inferioridad" en un uso legítimo.
@@ -103,93 +42,44 @@ def contiene_lenguaje_inapropiado(texto):
 
 
 # ---------------------------------------------------------------------------
-# 2. Búsqueda en la base vectorial
+# 🔍🔍2. Búsqueda en la base vectorial 🔍🔍
 # ---------------------------------------------------------------------------
-
-def _distancia_a_similitud(distancia):
-    """Chroma devuelve distancia coseno (0 a 2). La pasamos a 0-1."""
-    return max(0.0, min(1.0, 1.0 - distancia))
-
 
 def buscar(consulta, top_k=CANDIDATOS, excluir_derogados=False):
     """
-    Busca los artículos más relevantes para la consulta.
+    🧪✅🔍Busca los articulos más relevantes para la consulta.
 
-    Devuelve una lista de diccionarios con el texto del artículo,
-    su metadata y el score de similitud.
-
-    Con excluir_derogados=True se usa la metadata para filtrar en la
-    propia búsqueda: los artículos derogados ni siquiera compiten.
+    Convierte la consulta en vector y le pide a la base vectorial los
+    artículos más parecidos, con su metadata y el score de similitud. 🧪✅🔍
     """
-    respuesta = co.embed(
-        texts=[consulta],
-        model=MODELO_EMBEDDINGS,
-        input_type="search_query",
-        embedding_types=["float"],
-    )
-    vector = respuesta.embeddings.float[0]
-
-    # Pedimos de más porque después descartamos fragmentos repetidos
-    # del mismo artículo.
-    resultados = coleccion.query(
-        query_embeddings=[vector],
-        n_results=top_k * 3,
-        where={"derogado": False} if excluir_derogados else None,
-    )
-
-    if not resultados["ids"] or not resultados["ids"][0]:
-        return []
-
-    vistos = {}
-
-    for i in range(len(resultados["ids"][0])):
-        meta = resultados["metadatas"][0][i]
-        clave = meta["articulo"]
-
-        # Chroma devuelve ordenado de mejor a peor: nos quedamos
-        # con el primer fragmento de cada artículo.
-        if clave in vistos:
-            continue
-
-        vistos[clave] = {
-            "articulo": meta["articulo"],
-            "titulo": meta["titulo"],
-            "titulo_nombre": meta["titulo_nombre"],
-            "capitulo": meta["capitulo"],
-            "capitulo_nombre": meta["capitulo_nombre"],
-            "derogado": meta["derogado"],
-            "texto": resultados["documents"][0][i],
-            "score": round(_distancia_a_similitud(resultados["distances"][0][i]), 4),
-        }
-
-    return list(vistos.values())[:top_k]
+    vector = llm.embeber([consulta], tipo="search_query")[0]
+    return vector_store.buscar_por_vector(vector, top_k, excluir_derogados)
 
 
 # ---------------------------------------------------------------------------
-# 3. Reranking
+# 🔟🔍📃 3. Reranking 🔍📃🔟
 # ---------------------------------------------------------------------------
 
 def reordenar(consulta, articulos, top_n=TOP_K):
     """
-    Reordena los artículos por relevancia real usando el reranker.
+    Reordena los artículos por relevancia real usando el reranker. 🔟📃
 
-    Diferencia con la búsqueda: el embedding compara la consulta contra
-    un resumen numérico del artículo, calculado por separado y de
-    antemano. El reranker lee consulta y artículo JUNTOS, así que
-    distingue "período de prueba" de "prueba del contrato" aunque
-    compartan la palabra.
+    La diferencia con la búsqueda es q el embedding compara la consulta contra
+    un resumen numérico del artículo.
+    El reranker lee consulta y artículo JUNTOS, asi que
+    distingue por ejemplo "período de prueba" de "prueba del contrato" aunque
+    compartan la palabra. 📃✅
 
-    Si el reranker falla, se devuelve el orden original. Una mejora
-    de calidad no debe tumbar todo el servicio.
+    Si una llamada al reranker falla, se devuelve el orden original. La idea es que esto
+    no afecte a todo el sistema. ✋
     """
     if not articulos:
         return []
 
     try:
-        respuesta = co.rerank(
-            model=MODELO_RERANK,
-            query=consulta,
-            documents=[a["texto"] for a in articulos],
+        resultados = llm.rerank(
+            consulta,
+            [a["texto"] for a in articulos],
             top_n=min(top_n, len(articulos)),
         )
     except Exception as e:
@@ -198,30 +88,30 @@ def reordenar(consulta, articulos, top_n=TOP_K):
         return articulos[:top_n]
 
     reordenados = []
-    for item in respuesta.results:
-        art = dict(articulos[item.index])
-        art["score_rerank"] = round(item.relevance_score, 4)
+    for indice, score in resultados:
+        art = dict(articulos[indice])
+        art["score_rerank"] = round(score, 4)
         reordenados.append(art)
 
     return reordenados
 
 
 # ---------------------------------------------------------------------------
-# 3 bis. Retrieval completo (búsqueda + filtros + reranking)
+# 🔍📃 3 bis. Retrieval completo (búsqueda + filtros + reranking) 🔍📃
 # ---------------------------------------------------------------------------
 
 def recuperar(consulta, top_k=TOP_K, excluir_derogados=False, traza="-", candidatos=None):
     """
-    Ejecuta todo el retrieval SIN llamar al modelo generativo.
+    Ejecuta todo el retrieval SIN llamar al LLM. 📃👨‍💻
 
-    Lo usan /retrieve (para inspeccionar qué se recupera) y /ask (para
-    responder), así los dos ven exactamente los mismos fragmentos.
+    Lo usan el Endpoint /retrieve (para ver que es lo que recupera) y /ask (para
+    responder), asi los dos ven exactamente los mismos fragmentos. 📃👨‍💻
 
     Devuelve un diccionario:
       - pertinente:  si hay evidencia suficiente para responder
-      - motivo:      por qué se decidió eso
+      - motivo:      porqué se decidió eso
       - fragmentos:  si es pertinente, los que pasaron los dos filtros;
-                     si no, los mejores candidatos, para poder ver por qué
+                     si no, los mejores candidatos, para poder ver el porqué
       - similarity_score: el mejor score de similitud
 
     candidatos permite pasar una búsqueda ya hecha (lo usa la evaluación,
@@ -240,8 +130,8 @@ def recuperar(consulta, top_k=TOP_K, excluir_derogados=False, traza="-", candida
         traza, len(candidatos), mejor["articulo"], mejor["score"],
     )
 
-    # Filtro 1 (barato): ¿la consulta es sobre la ley? Si no supera el
-    # umbral, cortamos acá y nos ahorramos el reranker y el modelo.
+    # Filtro 1 : ¿la consulta es sobre la ley? Si no supera el
+    # umbral, cortamos acá y nos ahorramos el reranker y el modelo. 🔍✅
     if mejor["score"] < UMBRAL_SIMILITUD:
         logger.info(
             "PASO 4 PERTINENCIA | traza=%s | score=%.4f < umbral=%.2f | fuera de tema",
@@ -250,7 +140,7 @@ def recuperar(consulta, top_k=TOP_K, excluir_derogados=False, traza="-", candida
         return _resultado(False, "similitud_bajo_umbral",
                           candidatos[:top_k], mejor["score"])
 
-    # Filtro 2: de los candidatos, cuáles responden REALMENTE
+    # Filtro 2: de los candidatos, cuáles responden REALMENTE 🔟✅
     reordenados = reordenar(consulta, candidatos, top_n=top_k)
     relevantes = [a for a in reordenados
                   if a.get("score_rerank", 1.0) >= UMBRAL_RERANK]
@@ -276,15 +166,15 @@ def _resultado(pertinente, motivo, fragmentos, score):
 
 
 # ---------------------------------------------------------------------------
-# 4. Armado del contexto
+# 📃 4. Armado del contexto 📃
 # ---------------------------------------------------------------------------
 
 def armar_contexto(articulos):
     """
-    Junta los artículos recuperados en un solo texto para el modelo.
+    Junta los artículos recuperados en un solo texto para el modelo. 📃✅
 
     Cada bloque lleva su número de artículo y, si corresponde, el aviso
-    de que está derogado. Así el modelo puede citarlo y advertirlo.
+    de que está derogado. Así el modelo puede citarlo y advertirlo. 🤖✋
     """
     bloques = []
 
@@ -299,7 +189,7 @@ def armar_contexto(articulos):
 
 
 # ---------------------------------------------------------------------------
-# 5. Generación de la respuesta
+# 🤖🧪 5. Generación de la respuesta 🤖🧪
 # ---------------------------------------------------------------------------
 
 SIN_CONTEXTO = (
@@ -308,11 +198,10 @@ SIN_CONTEXTO = (
 )
 
 # System prompt: define rol, uso de evidencia, restricciones, formato y
-# qué hacer cuando no hay información. Va separado de la consulta del
-# usuario (role "system"), así lo que escriba el usuario no se mezcla
-# con las reglas.
+# qué hacer cuando no hay información. 🤖✋✅
+
 INSTRUCCIONES = f"""ROL
-Sos un asistente que informa qué dice la Ley de Contrato de Trabajo argentina (Ley 20.744). Tus usuarios son trabajadores y empleadores sin formación jurídica.
+Sos un asistente que informa que es lo que dice la Ley de Contrato de Trabajo argentina (Ley 20.744). Tus usuarios son trabajadores y empleadores sin formación jurídica.
 
 USO DE LA EVIDENCIA
 1. Respondé ÚNICAMENTE con la información de los artículos del CONTEXTO. No agregues conocimiento propio, otras leyes, convenios colectivos ni interpretaciones.
@@ -325,7 +214,7 @@ CUANDO NO HAY INFORMACIÓN SUFICIENTE
 
 RESTRICCIONES
 6. Respondé SIEMPRE en español, sin importar el idioma de la pregunta.
-7. No des consejos legales ni opiniones. Limitate a informar qué dice la ley.
+7. No des consejos legales ni opiniones. Limitate a informar lo que dice la ley.
 8. No hagas juicios de valor sobre empleadores ni trabajadores.
 9. No uses emojis ni símbolos decorativos.
 
@@ -336,30 +225,22 @@ FORMATO DE LA RESPUESTA
 
 
 def generar_respuesta(pregunta, contexto):
-    """Le pide al modelo que responda usando solo el contexto recuperado."""
+    """📃🚀 Le pide al modelo que responda usando solo el contexto recuperado. 📃🚀 """ 
     mensaje_usuario = f"""CONTEXTO (artículos de la Ley 20.744):
 {contexto}
 
 CONSULTA: {pregunta}"""
 
-    # Si el modelo devuelve una salida degenerada, se reintenta. El primer
-    # intento va con temperature=0; los reintentos con una temperatura
-    # baja, porque en la evaluación la misma pregunta degeneró dos veces
-    # seguidas con 0: la idea es sacar al modelo del bucle. El determinismo
-    # no se pierde: la respuesta que se entrega queda fija en el caché.
-    # Si falla las tres veces, se levanta un error: es preferible un 503
-    # a entregar (y guardar en el caché) una respuesta basura.
+
     for intento, temperatura in enumerate(TEMPERATURAS_POR_INTENTO, start=1):
-        respuesta = co.chat(
-            model=MODELO_CHAT,
-            messages=[
+        texto = llm.chat(
+            [
                 {"role": "system", "content": INSTRUCCIONES},
                 {"role": "user", "content": mensaje_usuario},
             ],
-            temperature=temperatura,
+            temperatura,
             max_tokens=MAX_TOKENS,
-        )
-        texto = respuesta.message.content[0].text.strip()
+        ).strip()
 
         if not es_degenerada(texto):
             return texto
@@ -379,7 +260,7 @@ TEMPERATURAS_POR_INTENTO = (TEMPERATURA, 0.3, 0.3)
 PATRON_REPETICION = re.compile(r"(\S.{0,9}?)\1{15,}", re.DOTALL)
 
 # 150 palabras en español son unos 250 tokens: 400 deja margen para una
-# respuesta normal y corta un bucle antes de que crezca.
+# respuesta normal y corta un bucle antes de que crezca. 🤖✋
 MAX_TOKENS = 400
 
 
@@ -389,7 +270,7 @@ def es_degenerada(texto):
 
 
 # ---------------------------------------------------------------------------
-# 6. Limpieza de la salida
+# 🤖🧪 6. Limpieza de la salida 🤖🧪
 # ---------------------------------------------------------------------------
 
 # Rangos Unicode de emojis y pictogramas.
@@ -408,10 +289,10 @@ PATRON_EMOJIS = re.compile(
 
 def quitar_emojis(texto):
     """
-    Saca emojis de la respuesta.
+    Saca emojis de la respuesta. 🚨✋
 
-    El prompt ya se lo pide al modelo, pero esto lo garantiza:
-    una instrucción se puede desobedecer, un filtro no.
+    El prompt ya se lo pide al modelo, pero esto algo que lo garantiza:
+    una instrucción quizas no es tan fuerte, un filtro no. 🚨✋
     """
     limpio = PATRON_EMOJIS.sub("", texto)
     return re.sub(r"[ ]{2,}", " ", limpio).strip()
